@@ -1238,10 +1238,10 @@ ssh_args = -o ControlMaster=auto -o ControlPersist=600s -o ControlPath=~/.ansibl
 EOF
 
 
-cd /home/${AUSERNAME}
-chmod 755 /home/${AUSERNAME}/openshift-install.sh
-echo "${RESOURCEGROUP} Bastion Host is starting OpenShift Install" | mail -s "${RESOURCEGROUP} Bastion OpenShift Install Starting" ${RHNUSERNAME} || true
-/home/${AUSERNAME}/openshift-install.sh &> /home/${AUSERNAME}/openshift-install.out &
-chmod 755 /home/${AUSERNAME}/openshift-postinstall.sh
-/home/${AUSERNAME}/openshift-postinstall.sh &> /home/${AUSERNAME}/openshift-postinstall.out &
+#cd /home/${AUSERNAME}
+#chmod 755 /home/${AUSERNAME}/openshift-install.sh
+#echo "${RESOURCEGROUP} Bastion Host is starting OpenShift Install" | mail -s "${RESOURCEGROUP} Bastion OpenShift Install Starting" ${RHNUSERNAME} || true
+#/home/${AUSERNAME}/openshift-install.sh &> /home/${AUSERNAME}/openshift-install.out &
+#chmod 755 /home/${AUSERNAME}/openshift-postinstall.sh
+#/home/${AUSERNAME}/openshift-postinstall.sh &> /home/${AUSERNAME}/openshift-postinstall.out &
 exit 0
