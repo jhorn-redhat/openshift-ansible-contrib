@@ -507,8 +507,10 @@
       }
     },
     "tenantId" : "[subscription().tenantId]",
+    "FQDN": "[concat(parameters('WildcardZone'),('.spec.'), variables('location'), ('.honeywell.com'))",
     "bastionVMSize" : "Standard_DS1_v2",
     "masterLoadBalancerName" : "[concat('MasterLb',resourceGroup().name)]",
+    "masterPublicFQDN": "[concat(('console.lab.spec.'), variables('location'), ('.honeywell.com'))",
     "masterPublicIpAddressId" : "[resourceId('Microsoft.Network/publicIPAddresses', resourceGroup().name)]",
     "masterLbId" : "[resourceId('Microsoft.Network/loadBalancers', variables('masterLoadBalancerName'))]",
     "masterLbFrontEndConfigId" : "[concat(variables('masterLbId'), '/frontendIPConfigurations/loadBalancerFrontEnd')]",
@@ -677,7 +679,7 @@
             "value" : "bastion"
           },
           "dnsName" : {
-            "value" : "[concat(resourceGroup().name,'b')]"
+            "value" : "[concat(resourceGroup().name,'b','(variables('FQDN'))]"
           },
           "sa" : {
             "value" : "[variables('masterStorageName')]"
@@ -1182,7 +1184,12 @@
             "name" : "LoadBalancerFrontEnd",
             "properties" : {
               "publicIPAddress" : {
-                "id" : "[variables('masterPublicIpAddressId')]"
+                "id" : "[variables('masterPublicIpAddressId')]",
+		"properties": {
+ 		  "dnsSettings": {
+                  "fqdn": "[variables('masterPublicFQDN')]"
+		  } 
+		}
               }
             }
           }
@@ -1315,7 +1322,7 @@
   "outputs" : {
     "Openshift Webconsole" : {
       "type" : "string",
-      "value" : "[concat('https://', reference(resourceGroup().name).dnsSettings.fqdn, ':8443/console')]"
+      "value" : "[concat('https://', reference(variables('masterPublicFQDN'), ':8443/console')]"
     },
     "Bastion ssh" : {
       "type" : "string",
