@@ -6,6 +6,10 @@
     resource_group_name: "{{ resourcegroupname }}"
     template_link: "{{ templatelink }}"
     parameters:
+      fqdn:
+        value: "{{ fqdn }}"
+      masterUrl:
+        value: "{{ masterurl }}"
       adminUsername:
         value: "{{ adminusername }}"
       adminPassword:
