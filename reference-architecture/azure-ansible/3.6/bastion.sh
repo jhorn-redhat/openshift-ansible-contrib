@@ -31,6 +31,14 @@ export OPSLOGGING=${array[25]}
 export GITURL=${array[26]}
 export CUSTOMWILDCARD=${array[27]}
 export CUSTOMPUBLICHOSTNAME=${array[28]}
+export PORTALNET=${array[29]}
+export CLUSTERNET=${array[30]}
+export MASTERCERT=${array[31]}
+export MASTERKEY=${array[32]}
+export MASTERCA=${array[33]}
+export ROUTERCERT=${array[34]}
+export ROUTERKEY=${array[35]}
+export ROUTERCA=${array[36]}
 export FULLDOMAIN=${THEHOSTNAME#*.*}
 export WILDCARDFQDN=${WILDCARDZONE}.${FULLDOMAIN}
 export WILDCARDIP=`dig +short ${WILDCARDFQDN}`
@@ -294,8 +302,29 @@ osm_default_node_selector="role=app"
 ansible_become=yes
 ansible_ssh_user=${AUSERNAME}
 remote_user=${AUSERNAME}
+EOF
 
+if [[ -n ${MASTERCERT} && -n ${MASTERKEY} && -n ${MASTERCA}  ]]; then
+  cat <<EOF >> /etc/ansible/hosts
+# MASTER Certificates
+openshift_master_named_certificates=[{"certfile": "${MASTERCERT}", "keyfile": "${MASTERKEY}", "cafile": "${MASTERCA}"}]
+openshift_master_overwrite_named_certificates=true
+EOF
+fi
 
+if [[ -n ${ROUTERCERT} && -n ${ROUTERKEY} && -n ${ROUTERCA}  ]]; then
+  cat <<EOF >> /etc/ansible/hosts
+# ROUTER Certificates
+openshift_hosted_router_certificate={"certfile": "${ROUTERCERT}", "keyfile": "${ROUTERKEY}", "cafile": "${ROUTERCA}"}
+openshift_hosted_router_create_certificate=False
+openshift_master_overwrite_named_certificates=true
+EOF
+fi
+
+cat <<EOF >> /etc/ansible/hosts
+# Networking
+osm_cluster_network_cidr=${CLUSTERNET}
+openshift_portal_net=${PORTALNET}
 
 openshift_use_dnsmasq=true
 openshift_master_cluster_method=native

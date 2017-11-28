@@ -10,3 +10,11 @@ openshiftsdn: "redhat/openshift-ovs-multitenant"
 metrics: true
 logging: true
 opslogging: false
+fqdn: ""
+masterurl: ""
+routercertfile: ""
+routerkeyfile: ""
+routercafile: ""
+mastercertfile: ""
+masterkeyfile: ""
+mastercafile: ""

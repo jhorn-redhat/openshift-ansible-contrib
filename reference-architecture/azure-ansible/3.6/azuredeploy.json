@@ -2,6 +2,43 @@
 	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
 	"contentVersion": "1.0.0.0",
 	"parameters": {
+		"routerKeyFile": {
+			"type": "string",
+			"metadata": {
+				"description": "Router Key file"
+			}
+		},
+		"routerCertFile": {
+			"type": "string",
+			"metadata": {
+				"description": "Router Certificate file"
+			}
+		},
+		"routerCaFile": {
+			"type": "string",
+			"metadata": {
+				"description": "Router CA file"
+			}
+		},
+
+		"masterKeyFile": {
+			"type": "string",
+			"metadata": {
+				"description": "Master Key file"
+			}
+		},
+		"masterCertFile": {
+			"type": "string",
+			"metadata": {
+				"description": "Master Certificate file"
+			}
+		},
+		"masterCaFile": {
+			"type": "string",
+			"metadata": {
+				"description": "Router CA file"
+			}
+		},
 		"fqdn": {
 			"type": "string",
 			"metadata": {
@@ -328,6 +365,8 @@
 		"baseVMachineTemplateUriNode": "[concat(variables('baseTemplateUrl'), 'node.json')]",
 		"baseVMachineTemplateUriMaster": "[concat(variables('baseTemplateUrl'), 'master.json')]",
 		"location": "[resourceGroup().location]",
+		"osm_cluster_network_cidr": "10.128.0.0/16"
+ 		"openshift_portal_net": "172.30.0.0/16"
 		"virtualNetworkName": "openshiftVnet",
 		"addressPrefix": "10.0.0.0/16",
 		"infranodesubnetName": "infranodeSubnet",
@@ -769,6 +808,30 @@
 					},
 					"opslogging": {
 						"value": "[parameters('opslogging')]"
+					},
+					"masterKeyFile": {
+						"value": "[parameters('masterKeyFile')]"
+					},
+					"masterCertFile": {
+						"value": "[parameters('masterCertFile')]"
+					},
+					"masterCaFile": {
+						"value": "[parameters('masterCaFile')]"
+					},
+					"routerKeyFile": {
+						"value": "[parameters('routerKeyFile')]"
+					},
+					"routerCertFile": {
+						"value": "[parameters('routerCertFile')]"
+					},
+					"routerCaFile": {
+						"value": "[parameters('routerCaFile')]"
+					},
+					"portalnet": {
+						"value": "[variables('openshift_portal_net')]"
+					},
+					"clusternet": {
+						"value": "[variables('osm_cluster_network_cidr')]"
 					},
 					"fqdn": {
 						"value": "[parameters('fqdn')]"
