@@ -39,6 +39,12 @@
 				"description": "Router CA file"
 			}
 		},
+		"autoInstall": {
+			"type": "string",
+			"metadata": {
+				"description": "AutoInstall Openshift"
+			}
+		},
 		"fqdn": {
 			"type": "string",
 			"metadata": {
@@ -837,6 +843,9 @@
 						"value": "[parameters('fqdn')]"
 					},
 					"masterUrl": {
+						"value": "[parameters('masterUrl')]"
+					},
+					"autoInstall": {
 						"value": "[parameters('masterUrl')]"
 					}
 				}

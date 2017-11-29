@@ -18,3 +18,4 @@ routercafile: ""
 mastercertfile: ""
 masterkeyfile: ""
 mastercafile: ""
+autoinstall: True

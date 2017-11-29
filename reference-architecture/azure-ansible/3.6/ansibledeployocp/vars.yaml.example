@@ -46,6 +46,9 @@ wildcardzone: "myapps"
 # Azure location:
 location: "westus"
 
+# Defaults to True
+autoinstall: True
+
 ##################
 # OPTIONAL: Custom Domain defaults to nip.io
 ##################

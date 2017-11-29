@@ -39,6 +39,7 @@ export MASTERCA=${array[33]}
 export ROUTERCERT=${array[34]}
 export ROUTERKEY=${array[35]}
 export ROUTERCA=${array[36]}
+export AUTOINSTALL=${array[37]}
 export FULLDOMAIN=${THEHOSTNAME#*.*}
 export WILDCARDFQDN=${WILDCARDZONE}.${FULLDOMAIN}
 export WILDCARDIP=`dig +short ${WILDCARDFQDN}`
@@ -1301,10 +1302,13 @@ ssh_args = -o ControlMaster=auto -o ControlPersist=600s -o ControlPath=~/.ansibl
 EOF
 
 
-cd /home/${AUSERNAME}
 chmod 755 /home/${AUSERNAME}/openshift-install.sh
-#echo "${RESOURCEGROUP} Bastion Host is starting OpenShift Install" | mail -s "${RESOURCEGROUP} Bastion OpenShift Install Starting" ${RHNUSERNAME} || true
-#/home/${AUSERNAME}/openshift-install.sh &> /home/${AUSERNAME}/openshift-install.out &
 chmod 755 /home/${AUSERNAME}/openshift-postinstall.sh
-#/home/${AUSERNAME}/openshift-postinstall.sh &> /home/${AUSERNAME}/openshift-postinstall.out &
+
+if [[ ${AUTOINSTALL} =~ ^[Tt]rue ]]; then
+  cd /home/${AUSERNAME}
+  echo "${RESOURCEGROUP} Bastion Host is starting OpenShift Install" | mail -s "${RESOURCEGROUP} Bastion OpenShift Install Starting" ${RHNUSERNAME} || true
+  /home/${AUSERNAME}/openshift-install.sh &> /home/${AUSERNAME}/openshift-install.out &
+  /home/${AUSERNAME}/openshift-postinstall.sh &> /home/${AUSERNAME}/openshift-postinstall.out &
+fi
 exit 0
