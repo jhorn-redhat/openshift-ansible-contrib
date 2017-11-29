@@ -565,7 +565,7 @@
 		"masterLbFrontEndConfigId": "[concat(variables('masterLbId'), '/frontendIPConfigurations/loadBalancerFrontEnd')]",
 		"masterLbBackendPoolId": "[concat(variables('masterLbId'),'/backendAddressPools/loadBalancerBackend')]",
 		"masterLbHttpProbeId": "[concat(variables('masterLbId'),'/probes/httpProbe')]",
-		"masterLb8443ProbeId": "[concat(variables('masterLbId'),'/probes/8443Probe')]",
+		"masterLb443ProbeId": "[concat(variables('masterLbId'),'/probes/443Probe')]",
 		"infraLoadBalancerName": "[concat(parameters('WildcardZone'), 'lb')]",
 		"infraPublicIpAddressId": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('WildcardZone'))]",
 		"infraLbId": "[resourceId('Microsoft.Network/loadBalancers', variables('infraLoadBalancerName'))]",
@@ -1279,18 +1279,18 @@
 						"protocol": "Tcp",
 						"loadDistribution": "SourceIP",
 						"idleTimeoutInMinutes": 30,
-						"frontendPort": 8443,
-						"backendPort": 8443,
+						"frontendPort": 443,
+						"backendPort": 443,
 						"probe": {
-							"id": "[variables('masterLb8443ProbeId')]"
+							"id": "[variables('masterLb443ProbeId')]"
 						}
 					}
 				}],
 				"probes": [{
-					"name": "8443Probe",
+					"name": "443Probe",
 					"properties": {
 						"protocol": "Tcp",
-						"port": 8443,
+						"port": 443,
 						"intervalInSeconds": 5,
 						"numberOfProbes": 2
 					}
@@ -1380,7 +1380,7 @@
 	"outputs": {
 		"Openshift Webconsole": {
 			"type": "string",
-			"value": "[concat('https://', reference(resourceGroup().name).dnsSettings.fqdn, ':8443/console')]"
+			"value": "[concat('https://', reference(resourceGroup().name).dnsSettings.fqdn, ':443/console')]"
 		},
 		"Bastion ssh": {
 			"type": "string",

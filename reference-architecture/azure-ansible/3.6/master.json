@@ -209,7 +209,7 @@
             "properties" : {
               "protocol" : "Tcp",
               "sourcePortRange" : "*",
-              "destinationPortRange" : "8443",
+              "destinationPortRange" : "443",
               "sourceAddressPrefix" : "*",
               "destinationAddressPrefix" : "*",
               "access" : "Allow",

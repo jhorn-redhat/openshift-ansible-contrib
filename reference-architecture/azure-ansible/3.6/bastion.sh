@@ -270,7 +270,7 @@ osm_controller_args={'cloud-provider': ['azure'], 'cloud-config': ['/etc/azure/a
 osm_api_server_args={'cloud-provider': ['azure'], 'cloud-config': ['/etc/azure/azure.conf']}
 openshift_node_kubelet_args={'cloud-provider': ['azure'], 'cloud-config': ['/etc/azure/azure.conf'], 'enable-controller-attach-detach': ['true']}
 debug_level=2
-console_port=8443
+console_port=443
 docker_udev_workaround=True
 openshift_node_debug_level="{{ node_debug_level | default(debug_level, true) }}"
 openshift_master_debug_level="{{ master_debug_level | default(debug_level, true) }}"
@@ -305,11 +305,13 @@ remote_user=${AUSERNAME}
 EOF
 
 if [[ -n ${MASTERCERT} && -n ${MASTERKEY} && -n ${MASTERCA}  ]]; then
+
   cat <<EOF >> /etc/ansible/hosts
 # MASTER Certificates
 openshift_master_named_certificates=[{"certfile": "${MASTERCERT}", "keyfile": "${MASTERKEY}", "cafile": "${MASTERCA}"}]
 openshift_master_overwrite_named_certificates=true
 EOF
+
 fi
 
 if [[ -n ${ROUTERCERT} && -n ${ROUTERKEY} && -n ${ROUTERCA}  ]]; then
@@ -319,6 +321,7 @@ openshift_hosted_router_certificate={"certfile": "${ROUTERCERT}", "keyfile": "${
 openshift_hosted_router_create_certificate=False
 openshift_master_overwrite_named_certificates=true
 EOF
+
 fi
 
 cat <<EOF >> /etc/ansible/hosts
@@ -523,7 +526,7 @@ cat > /home/${AUSERNAME}/setup-sso.yml <<EOF
         protocol: "openid-connect"
         clientAuthenticatorType: "client-secret"
         directAccessGrantsEnabled: true
-        redirectUris: ["https://{{api_master}}:8443/*"]
+        redirectUris: ["https://{{api_master}}:443/*"]
         webOrigins: []
         publicClient: false
         consentRequired: false
@@ -987,7 +990,7 @@ export HOSTCACHING="None"
 export NET="openshiftVnet"
 export IMAGE="RHEL"
 export SACONTAINER="openshiftvmachines"
-export APIPORT="8443"
+export APIPORT="443"
 export HTTP="80"
 export HTTPS="443"
 
@@ -1133,7 +1136,7 @@ ansible-playbook  /home/${AUSERNAME}/azure-config.yml
 echo "${RESOURCEGROUP} Bastion Host is starting ansible BYO" | mail -s "${RESOURCEGROUP} Bastion BYO Install" ${RHNUSERNAME} || true
 ansible-playbook  /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml < /dev/null
 
-wget http://master1:8443/api > healtcheck.out
+wget http://master1:443/api > healtcheck.out
 
 ansible all -b -m command -a "nmcli con modify eth0 ipv4.dns-search $(domainname -d)"
 ansible all -b -m service -a "name=NetworkManager state=restarted"
