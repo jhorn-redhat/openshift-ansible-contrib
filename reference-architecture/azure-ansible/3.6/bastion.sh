@@ -478,6 +478,7 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
       shell: sleep 2 && /sbin/shutdown -r now "Ansible Reboot"
       async: 0
       poll: 0
+      register: docker_status
 
     - name: Wait for system to become reachable
       wait_for_connection:
