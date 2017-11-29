@@ -1306,7 +1306,7 @@ chmod 755 /home/${AUSERNAME}/openshift-install.sh
 chmod 755 /home/${AUSERNAME}/openshift-postinstall.sh
 
 echo "${AUTOINSTALL}" > /home/${AUSERNAME}/install
-if [[ ${AUTOINSTALL} ]]; then  #=~ ^[Yy]es ]]; then
+if [[ ${AUTOINSTALL} =~ ^[Yy]es ]]; then
   cd /home/${AUSERNAME}
   echo "${RESOURCEGROUP} Bastion Host is starting OpenShift Install" | mail -s "${RESOURCEGROUP} Bastion OpenShift Install Starting" ${RHNUSERNAME} || true
   /home/${AUSERNAME}/openshift-install.sh &> /home/${AUSERNAME}/openshift-install.out &
