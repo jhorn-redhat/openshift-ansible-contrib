@@ -846,7 +846,7 @@
 						"value": "[parameters('masterUrl')]"
 					},
 					"autoInstall": {
-						"value": "[parameters('masterUrl')]"
+						"value": "[parameters('autoInstall')]"
 					}
 				}
 			}
