@@ -52,14 +52,14 @@ export OPSLOGGING_ES_SIZE="10"
 export METRICS_CASSANDRASIZE="10"
 export APIHOST=$RESOURCEGROUP.$FULLDOMAIN
 
-if [[ -n ${CUSTOMWILDCARD} ]]; then
+if [[ ${CUSTOMWILDCARD} != 'false']]; then
   WILDCARDFQDN=${CUSTOMWILDCARD}
 else
   WILDCARDFQDN=${WILDCARDNIP}
 
 fi
 
-if [[ -n ${CUSTOMPUBLICHOSTNAME} ]]; then
+if [[ -n ${CUSTOMPUBLICHOSTNAME} != 'false' ]]; then
   PUBLICHOSTNAME=${CUSTOMPUBLICHOSTNAME}
 else
   PUBLICHOSTNAME=${RESOURCEGROUP}.${FULLDOMAIN}
@@ -305,7 +305,7 @@ ansible_ssh_user=${AUSERNAME}
 remote_user=${AUSERNAME}
 EOF
 
-if [[ -n ${MASTERCERT} && -n ${MASTERKEY} && -n ${MASTERCA}  ]]; then
+if [[ ${MASTERCERT} != 'false' && ${MASTERKEY} != 'false' && ${MASTERCA} != 'false' ]]; then
 
   cat <<EOF >> /etc/ansible/hosts
 # MASTER Certificates
@@ -315,7 +315,7 @@ EOF
 
 fi
 
-if [[ -n ${ROUTERCERT} && -n ${ROUTERKEY} && -n ${ROUTERCA}  ]]; then
+if [[ ${ROUTERCERT} != 'false'  && ${ROUTERKEY} != 'false' && ${ROUTERCA} != 'false' ]]; then
   cat <<EOF >> /etc/ansible/hosts
 # ROUTER Certificates
 openshift_hosted_router_certificate={"certfile": "${ROUTERCERT}", "keyfile": "${ROUTERKEY}", "cafile": "${ROUTERCA}"}
@@ -1305,8 +1305,8 @@ EOF
 chmod 755 /home/${AUSERNAME}/openshift-install.sh
 chmod 755 /home/${AUSERNAME}/openshift-postinstall.sh
 
-
-if [[ -n ${AUTOINSTALL} ]]; then  #=~ ^[Yy]es ]]; then
+echo "${AUTOINSTALL}" > /home/${AUSERNAME}/install
+if [[ ${AUTOINSTALL} ]]; then  #=~ ^[Yy]es ]]; then
   cd /home/${AUSERNAME}
   echo "${RESOURCEGROUP} Bastion Host is starting OpenShift Install" | mail -s "${RESOURCEGROUP} Bastion OpenShift Install Starting" ${RHNUSERNAME} || true
   /home/${AUSERNAME}/openshift-install.sh &> /home/${AUSERNAME}/openshift-install.out &
