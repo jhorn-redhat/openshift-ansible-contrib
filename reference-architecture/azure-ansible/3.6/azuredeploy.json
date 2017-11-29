@@ -365,8 +365,8 @@
 		"baseVMachineTemplateUriNode": "[concat(variables('baseTemplateUrl'), 'node.json')]",
 		"baseVMachineTemplateUriMaster": "[concat(variables('baseTemplateUrl'), 'master.json')]",
 		"location": "[resourceGroup().location]",
-		"osm_cluster_network_cidr": "10.128.0.0/16"
- 		"openshift_portal_net": "172.30.0.0/16"
+		"osm_cluster_network_cidr": "10.128.0.0/16",
+ 		"openshift_portal_net": "172.30.0.0/16",
 		"virtualNetworkName": "openshiftVnet",
 		"addressPrefix": "10.0.0.0/16",
 		"infranodesubnetName": "infranodeSubnet",
