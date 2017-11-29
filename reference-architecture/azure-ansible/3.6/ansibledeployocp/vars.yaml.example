@@ -43,17 +43,45 @@ aadclientsecret: "theserviceprinciplepassword"
 # Subdomain for applications in the OpenShift cluster (required by the load balancer, but nip.io will be used). It is just the subdomain, not the full FQDN.
 wildcardzone: "myapps"
 
+# Azure location:
+location: "westus"
+
+##################
+# OPTIONAL: Custom Domain defaults to nip.io
+##################
+#domain: "honeywell.com"
+
+# OPTIONAL: Used instead of nip.io
+#fqdn: "{{ wildcardzone }}.spec.{{ location }}.{{ domain }}"
+
+# OPTIONAL: URL
+#masterurl: "console.{{ fqdn }}"
+
+##################
+# OPTIONAL: Deploy certs, defaults to self signed
+##################
+#routercertfile: "router.crt"
+#routerkeyfile: "router.key"
+#routercafile: "router.ca"
+#
+#mastercertfile: "master.crt"
+#masterkeyfile: "master.key"
+#mastercafile: "master.ca"
+
 # Optional (default values are set in playbooks/roles/azure-deploy/default/main.yaml)
 # The ARM template that will be deployed
-# templatelink: "https://raw.githubusercontent.com/openshift/openshift-ansible-contrib/master/reference-architecture/azure-ansible/azuredeploy.json"
+# NOTE: Remember to make sure the following is updated in the azuredeploy.json that points to correct project
+# 359         "variables": {
+# 360                 "gituser": "openshift"
+# 361                 "branch": "master",
+# 362                 "version": "3.6",
+# templatelink: "https://raw.githubusercontent.com/openshift/openshift-ansible-contrib/master/reference-architecture/azure-ansible/3.6/azuredeploy.json"
 # From 3 to 30 nodes
 # numberofnodes: 3
 # image: "rhel"
 # mastervmsize: "Standard_DS3_v2"
 # infranodesize: "Standard_DS3_v2"
 # nodevmsize: "Standard_DS12_v2"
-# Azure location:
-# location: "westus"
 # OpenShift SDN:
 # openshiftsdn: "redhat/openshift-ovs-multitenant"
 # Deploy metrics

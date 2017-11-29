@@ -51,17 +51,17 @@
         value: "{{ logging }}"
       opslogging:
         value: "{{ opslogging }}"
-      routerCertFile::
+      routerCertFile:
         value: "{{ routercertfile }}"
-      routerKeyFile::
+      routerKeyFile:
         value: "{{ routerkeyfile }}"
-      routerCaFile::
+      routerCaFile:
         value: "{{ routercafile }}"
-      masterCertFile::
+      masterCertFile:
         value: "{{ mastercertfile }}"
-      masterKeyFile::
+      masterKeyFile:
         value: "{{ masterkeyfile }}"
-      masterCaFile::
+      masterCaFile:
         value: "{{ mastercafile }}"
 
   register: azuredeploy
