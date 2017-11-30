@@ -52,7 +52,7 @@ export OPSLOGGING_ES_SIZE="10"
 export METRICS_CASSANDRASIZE="10"
 export APIHOST=$RESOURCEGROUP.$FULLDOMAIN
 
-if [[ ${CUSTOMWILDCARD} != 'false']]; then
+if [[ ${CUSTOMWILDCARD} != 'false' ]]; then
   WILDCARDFQDN=${CUSTOMWILDCARD}
 else
   WILDCARDFQDN=${WILDCARDNIP}
@@ -1305,8 +1305,9 @@ EOF
 chmod 755 /home/${AUSERNAME}/openshift-install.sh
 chmod 755 /home/${AUSERNAME}/openshift-postinstall.sh
 
-echo "${AUTOINSTALL}" > /home/${AUSERNAME}/install
-if [[ ${AUTOINSTALL} =~ ^[Yy]es ]]; then
+echo "${AUTOINSTALL}" > /home/${AUSERNAME}/.autoinstall
+
+if [[ ${AUTOINSTALL} =! false ]]; then
   cd /home/${AUSERNAME}
   echo "${RESOURCEGROUP} Bastion Host is starting OpenShift Install" | mail -s "${RESOURCEGROUP} Bastion OpenShift Install Starting" ${RHNUSERNAME} || true
   /home/${AUSERNAME}/openshift-install.sh &> /home/${AUSERNAME}/openshift-install.out &
