@@ -47,7 +47,7 @@ wildcardzone: "myapps"
 location: "westus"
 
 # Defaults to 'yes'
-autoinstall: "yes"
+autoinstall: "true"
 
 ##################
 # OPTIONAL: Custom Domain defaults to nip.io
