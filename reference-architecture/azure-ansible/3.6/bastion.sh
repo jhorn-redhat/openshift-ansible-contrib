@@ -194,7 +194,7 @@ if [[ $RHSMMODE == "usernamepassword" ]]
 then
    subscription-manager register --username="${RHNUSERNAME}" --password="${RHNPASSWORD}"
 else
-   subscription-manager register --org="${RHNUSERNAME}" --activationkey="${RHNPASSWORD}"
+   subscription-manager register --org="${RHNPASSWORD}" --activationkey="${RHNUSERNAME}"
 fi
 subscription-manager attach --pool=$RHNPOOLID
 subscription-manager repos --disable="*"
