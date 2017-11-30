@@ -2,38 +2,38 @@
 	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
 	"contentVersion": "1.0.0.0",
 	"parameters": {
-		"routerKeyFile": {
+		"routerKeyData": {
 			"type": "string",
 			"metadata": {
 				"description": "Router Key file"
 			}
 		},
-		"routerCertFile": {
+		"routerCertData": {
 			"type": "string",
 			"metadata": {
 				"description": "Router Certificate file"
 			}
 		},
-		"routerCaFile": {
+		"routerCaData": {
 			"type": "string",
 			"metadata": {
 				"description": "Router CA file"
 			}
 		},
 
-		"masterKeyFile": {
+		"masterKeyData": {
 			"type": "string",
 			"metadata": {
 				"description": "Master Key file"
 			}
 		},
-		"masterCertFile": {
+		"masterCertData": {
 			"type": "string",
 			"metadata": {
 				"description": "Master Certificate file"
 			}
 		},
-		"masterCaFile": {
+		"masterCaData": {
 			"type": "string",
 			"metadata": {
 				"description": "Router CA file"
@@ -815,23 +815,23 @@
 					"opslogging": {
 						"value": "[parameters('opslogging')]"
 					},
-					"masterKeyFile": {
-						"value": "[parameters('masterKeyFile')]"
+					"masterKeyData": {
+						"value": "[parameters('masterKeyData')]"
 					},
-					"masterCertFile": {
-						"value": "[parameters('masterCertFile')]"
+					"masterCertData": {
+						"value": "[parameters('masterCertData')]"
 					},
-					"masterCaFile": {
-						"value": "[parameters('masterCaFile')]"
+					"masterCaData": {
+						"value": "[parameters('masterCaData')]"
 					},
-					"routerKeyFile": {
-						"value": "[parameters('routerKeyFile')]"
+					"routerKeyData": {
+						"value": "[parameters('routerKeyData')]"
 					},
-					"routerCertFile": {
-						"value": "[parameters('routerCertFile')]"
+					"routerCertData": {
+						"value": "[parameters('routerCertData')]"
 					},
-					"routerCaFile": {
-						"value": "[parameters('routerCaFile')]"
+					"routerCaData": {
+						"value": "[parameters('routerCaData')]"
 					},
 					"portalnet": {
 						"value": "[variables('openshift_portal_net')]"

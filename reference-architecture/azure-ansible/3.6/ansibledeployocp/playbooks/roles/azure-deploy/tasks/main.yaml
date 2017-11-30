@@ -53,18 +53,18 @@
         value: "{{ opslogging }}"
       autoInstall:
         value: "{{ autoinstall }}"
-      routerCertFile:
-        value: "{{ routercertfile }}"
-      routerKeyFile:
-        value: "{{ routerkeyfile }}"
-      routerCaFile:
-        value: "{{ routercafile }}"
-      masterCertFile:
-        value: "{{ mastercertfile }}"
-      masterKeyFile:
-        value: "{{ masterkeyfile }}"
-      masterCaFile:
-        value: "{{ mastercafile }}"
+      routerCertData:
+        value: "{{ routercertdata }}"
+      routerKeyData:
+        value: "{{ routerkeydata }}"
+      routerCaData:
+        value: "{{ routercadata }}"
+      masterCertData:
+        value: "{{ mastercertdata }}"
+      masterKeyData:
+        value: "{{ masterkeydata }}"
+      masterCaData:
+        value: "{{ mastercadata }}"
 
   register: azuredeploy
 

@@ -61,15 +61,15 @@ autoinstall: "yes"
 #masterurl: "console.{{ fqdn }}"
 
 ##################
-# OPTIONAL: Deploy certs, defaults to self signed
+# Router Certfile: copy data directly into each variable
 ##################
-#routercertfile: "router.crt"
-#routerkeyfile: "router.key"
-#routercafile: "router.ca"
+#routercertdata: ""
+#routerkeydata: ""
+#routercadata: ""
 #
-#mastercertfile: "master.crt"
-#masterkeyfile: "master.key"
-#mastercafile: "master.ca"
+#mastercertdata: ""
+#masterkeydata: ""
+#mastercadata: ""
 
 # Optional (default values are set in playbooks/roles/azure-deploy/default/main.yaml)
 # The ARM template that will be deployed

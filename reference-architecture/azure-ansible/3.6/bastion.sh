@@ -306,19 +306,29 @@ remote_user=${AUSERNAME}
 EOF
 
 if [[ ${MASTERCERT} != 'false' && ${MASTERKEY} != 'false' && ${MASTERCA} != 'false' ]]; then
-
+  # Create files from data in vars
+  CERTDIR="/home/${AUSERNAME}/certs"
+  mkdir -p ${CERTDIR}
+  echo '${MASTERCERT}' > ${CERTDIR}/master.crt
+  echo '${MASTERKEY}' > ${CERTDIR}/master.key
+  echo '${MASTERCA}' > ${CERTDIR}/master.ca
   cat <<EOF >> /etc/ansible/hosts
 # MASTER Certificates
-openshift_master_named_certificates=[{"certfile": "${MASTERCERT}", "keyfile": "${MASTERKEY}", "cafile": "${MASTERCA}"}]
+openshift_master_named_certificates=[{"certfile": "${CERTDIR}/master.crt", "keyfile": "${CERTDIR}/master.key", "cafile": "${CERTDIR}/master.ca"}]
 openshift_master_overwrite_named_certificates=true
 EOF
 
 fi
 
 if [[ ${ROUTERCERT} != 'false'  && ${ROUTERKEY} != 'false' && ${ROUTERCA} != 'false' ]]; then
+  CERTDIR="/home/${AUSERNAME}/certs"
+  mkdir -p ${CERTDIR}
+  echo '${ROUTERCERT}' > ${CERTDIR}/router.crt
+  echo '${ROUTERKEY}' > ${CERTDIR}/router.key
+  echo '${ROUTERCA}' > ${CERTDIR}/router.ca
   cat <<EOF >> /etc/ansible/hosts
 # ROUTER Certificates
-openshift_hosted_router_certificate={"certfile": "${ROUTERCERT}", "keyfile": "${ROUTERKEY}", "cafile": "${ROUTERCA}"}
+openshift_hosted_router_certificate={"certfile": "${CERTDIR}/router.crt", "keyfile": "${CERTDIR}/router.key", "cafile": "${CERTDIR}/router.ca"}
 openshift_hosted_router_create_certificate=False
 openshift_master_overwrite_named_certificates=true
 EOF
