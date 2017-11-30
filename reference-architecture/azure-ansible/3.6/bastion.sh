@@ -482,6 +482,8 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
       name: docker
       enabled: yes
       state: started
+    register: docker_status
+
   - name: Restart host
     block:
     - name: Restart host
@@ -489,7 +491,6 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
       shell: sleep 2 && /sbin/shutdown -r now "Ansible Reboot"
       async: 0
       poll: 0
-      register: docker_status
 
     - name: Wait for system to become reachable
       wait_for_connection:
