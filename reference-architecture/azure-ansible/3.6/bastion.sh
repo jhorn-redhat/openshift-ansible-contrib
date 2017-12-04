@@ -437,7 +437,7 @@ if [[ $RHSMMODE == "usernamepassword" ]]
 then
     echo "    shell: subscription-manager register --username=\"${RHNUSERNAME}\" --password=\"${RHNPASSWORD}\"" >> /home/${AUSERNAME}/subscribe.yml
 else
-    echo "    shell: subscription-manager register --org=\"${RHNUSERNAME}\" --activationkey=\"${RHNPASSWORD}\"" >> /home/${AUSERNAME}/subscribe.yml
+    echo "    shell: subscription-manager register --org=\"${RHNPASSWORD}\" --activationkey=\"${RHNUSERNAME}\"" >> /home/${AUSERNAME}/subscribe.yml
 fi
 cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
     register: task_result
