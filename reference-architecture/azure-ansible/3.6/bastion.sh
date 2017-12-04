@@ -359,8 +359,8 @@ openshift_metrics_heapster_nodeselector={"role":"infra"}
 
 # Do not install logging but post install
 openshift_logging_install_logging=false
-openshift_logging_es_pv_selector={"usage":"elasticsearch"}
-openshift_logging_es_pvc_dynamic="false"
+#openshift_logging_es_pv_selector={"usage":"elasticsearch"}
+openshift_logging_es_pvc_dynamic="true"
 openshift_logging_es_pvc_size="${LOGGING_ES_SIZE}G"
 openshift_logging_es_cluster_size=${LOGGING_ES_INSTANCES}
 openshift_logging_fluentd_nodeselector={"logging":"true"}
@@ -482,6 +482,8 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
       name: docker
       enabled: yes
       state: started
+    register: docker_status 
+
   - name: Restart host
     block:
     - name: Restart host
@@ -489,7 +491,6 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
       shell: sleep 2 && /sbin/shutdown -r now "Ansible Reboot"
       async: 0
       poll: 0
-      register: docker_status
 
     - name: Wait for system to become reachable
       wait_for_connection:
