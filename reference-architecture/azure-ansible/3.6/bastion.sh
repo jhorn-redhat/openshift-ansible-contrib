@@ -314,7 +314,7 @@ if [[ ${MASTERCERT} != 'false' && ${MASTERKEY} != 'false' && ${MASTERCA} != 'fal
   echo ${MASTERCA}   | base64 --d > ${CERTDIR}/master.ca
   cat <<EOF >> /etc/ansible/hosts
 # MASTER Certificates
-openshift_master_named_certificates=[{"certfile": "${CERTDIR}/master.crt", "keyfile": "${CERTDIR}/master.key", "cafile": "${CERTDIR}/master.ca"}]
+openshift_master_named_certificates=[{"certfile": "${CERTDIR}/master.crt", "keyfile": "${CERTDIR}/master.key", "cafile": "${CERTDIR}/master.ca", "names": ["${PUBLICHOSTNAME}"]}]
 openshift_master_overwrite_named_certificates=true
 EOF
 
@@ -328,7 +328,8 @@ if [[ ${ROUTERCERT} != 'false'  && ${ROUTERKEY} != 'false' && ${ROUTERCA} != 'fa
   echo ${ROUTERCA} >  base64 --d > ${CERTDIR}/router.ca
   cat <<EOF >> /etc/ansible/hosts
 # ROUTER Certificates
-openshift_hosted_router_certificate={"certfile": "${CERTDIR}/router.crt", "keyfile": "${CERTDIR}/router.key", "cafile": "${CERTDIR}/router.ca"}
+openshift_hosted_router_certificate={"certfile": "${CERTDIR}/router.crt", "keyfile": "${CERTDIR}/router.key", "cafile": "${CERTDIR}/router.ca""]}
+penshift_hosted_router_certificate
 openshift_hosted_router_create_certificate=False
 openshift_master_overwrite_named_certificates=true
 EOF
