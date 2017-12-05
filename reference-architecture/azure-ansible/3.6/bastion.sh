@@ -343,8 +343,6 @@ openshift_portal_net=${PORTALNET}
 openshift_use_dnsmasq=true
 openshift_master_cluster_method=native
 openshift_master_default_subdomain=${WILDCARDFQDN}
-#openshift_master_cluster_hostname=${RESOURCEGROUP}.${FULLDOMAIN}
-#openshift_master_cluster_public_hostname=${RESOURCEGROUP}.${FULLDOMAIN}
 openshift_master_cluster_hostname=${PUBLICHOSTNAME}
 openshift_master_cluster_public_hostname=${PUBLICHOSTNAME}
 
@@ -359,6 +357,7 @@ openshift_metrics_heapster_nodeselector={"role":"infra"}
 
 # Do not install logging but post install
 openshift_logging_install_logging=false
+openshift_logging_master_public_url=${PUBLICHOSTNAME}
 openshift_logging_es_pv_selector={"usage":"elasticsearch"}
 openshift_logging_es_pvc_dynamic="false"
 openshift_logging_es_pvc_size="${LOGGING_ES_SIZE}G"
