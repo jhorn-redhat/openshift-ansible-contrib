@@ -309,9 +309,9 @@ if [[ ${MASTERCERT} != 'false' && ${MASTERKEY} != 'false' && ${MASTERCA} != 'fal
   # Create files from data in vars
   CERTDIR="/home/${AUSERNAME}/certs"
   mkdir -p ${CERTDIR}
-  echo '${MASTERCERT}' > ${CERTDIR}/master.crt
-  echo '${MASTERKEY}' > ${CERTDIR}/master.key
-  echo '${MASTERCA}' > ${CERTDIR}/master.ca
+  echo ${MASTERCERT} | base64 --d  > ${CERTDIR}/master.crt
+  echo ${MASTERKEY}  | base64 --d > ${CERTDIR}/master.key
+  echo ${MASTERCA}   | base64 --d > ${CERTDIR}/master.ca
   cat <<EOF >> /etc/ansible/hosts
 # MASTER Certificates
 openshift_master_named_certificates=[{"certfile": "${CERTDIR}/master.crt", "keyfile": "${CERTDIR}/master.key", "cafile": "${CERTDIR}/master.ca"}]
@@ -323,9 +323,9 @@ fi
 if [[ ${ROUTERCERT} != 'false'  && ${ROUTERKEY} != 'false' && ${ROUTERCA} != 'false' ]]; then
   CERTDIR="/home/${AUSERNAME}/certs"
   mkdir -p ${CERTDIR}
-  echo '${ROUTERCERT}' > ${CERTDIR}/router.crt
-  echo '${ROUTERKEY}' > ${CERTDIR}/router.key
-  echo '${ROUTERCA}' > ${CERTDIR}/router.ca
+  echo ${ROUTERCERT} > base64 --d > ${CERTDIR}/router.crt
+  echo ${ROUTERKEY} > base64 --d > ${CERTDIR}/router.key
+  echo ${ROUTERCA} >  base64 --d > ${CERTDIR}/router.ca
   cat <<EOF >> /etc/ansible/hosts
 # ROUTER Certificates
 openshift_hosted_router_certificate={"certfile": "${CERTDIR}/router.crt", "keyfile": "${CERTDIR}/router.key", "cafile": "${CERTDIR}/router.ca"}
