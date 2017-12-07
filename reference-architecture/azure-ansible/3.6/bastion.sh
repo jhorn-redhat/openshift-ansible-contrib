@@ -358,7 +358,7 @@ openshift_metrics_heapster_nodeselector={"role":"infra"}
 
 # Do not install logging but post install
 openshift_logging_install_logging=false
-openshift_logging_master_public_url=${PUBLICHOSTNAME}
+openshift_logging_master_public_url=https://${PUBLICHOSTNAME}
 openshift_logging_es_pv_selector={"usage":"elasticsearch"}
 openshift_logging_es_pvc_dynamic="false"
 openshift_logging_es_pvc_size="${LOGGING_ES_SIZE}G"
