@@ -360,7 +360,15 @@
 			"metadata": {
 				"description": "Enable OCP aggregated logging for ops"
 			}
-		}
+		},
+                "routeTableName": {
+                        "defaultValue": "routeTable1",
+                        "type": "String"
+                },
+                "peeringNetworkId": {
+                  "defaultValue": "/subscriptions/af8229c5-6fad-404a-bda8-0dab2d7ced59/resourceGroups/HONUSWestOAM2/providers/Microsoft.Network/virtualNetworks/HONUSWestOAM2",
+                  "type": "String"
+                }
 	},
 	"variables": {
 		"gituser": "jhorn-redhat",
@@ -374,13 +382,13 @@
                 "osm_cluster_network_cidr": "10.29.0.0/16",
                 "openshift_portal_net": "10.28.0.0/16",
                 "virtualNetworkName": "platform-spec-vnet",
-                "addressPrefix": "10.8.145.0/16",
+                "addressPrefix": "10.9.0.0/16",
                 "infranodesubnetName": "infranode",
-                "infranodesubnetPrefix": "10.8.145.16/28",
+                "infranodesubnetPrefix": "10.9.14.2/28",
                 "nodesubnetName": "node",
-                "nodesubnetPrefix": "10.8.145.32/28",
+                "nodesubnetPrefix": "10.9.14.4/28",
                 "mastersubnetName": "master",
-                "mastersubnetPrefix": "10.8.145.0/28",
+                "mastersubnetPrefix": "10.9.14.0/28",
 		"infranodeStorageName": "[concat('sainf', resourceGroup().name)]",
 		"nodeStorageName": "[concat('sanod', resourceGroup().name)]",
 		"masterStorageName": "[concat('samas', resourceGroup().name)]",
@@ -592,7 +600,59 @@
 		"apiVersionStorage": "2015-06-15",
 		"apiVersionLinkTemplate": "2015-01-01"
 	},
-	"resources": [{
+        "resources": [
+                {
+                        "type": "Microsoft.Network/routeTables",
+                        "name": "[parameters('routeTableName')]",
+			"apiVersion": "[variables('apiVersion')]",
+			"location": "[variables('location')]",
+                        "properties": {
+                                "routes": [
+                                        {
+                                                "name": "BitBucket",
+                                                "properties": {
+                                                        "addressPrefix": "10.8.69.4/32",
+                                                        "nextHopType": "VirtualAppliance",
+                                                        "nextHopIpAddress": "10.8.90.68"
+                                                }
+                                        },
+                                        {
+                                                "name": "ExpressRoute",
+                                                "properties": {
+                                                        "addressPrefix": "10.4.254.224/28",
+                                                        "nextHopType": "VirtualAppliance",
+                                                        "nextHopIpAddress": "10.8.90.68"
+                                                }
+                                        },
+                                        {
+                                                "name": "HoneywellDCW",
+                                                "properties": {
+                                                        "addressPrefix": "10.192.0.0/13",
+                                                        "nextHopType": "VirtualAppliance",
+                                                        "nextHopIpAddress": "10.8.90.68"
+                                                }
+                                        },
+                                        {
+                                                "name": "HoneywellDCE",
+                                                "properties": {
+                                                        "addressPrefix": "10.216.0.0/13",
+                                                        "nextHopType": "VirtualAppliance",
+                                                        "nextHopIpAddress": "10.8.90.68"
+                                                }
+                                        },
+                                        {
+                                                "name": "HoneywellNL69",
+                                                "properties": {
+                                                        "addressPrefix": "10.232.0.0/13",
+                                                        "nextHopType": "VirtualAppliance",
+                                                        "nextHopIpAddress": "10.8.90.68"
+                                                }
+                                        }
+                                ]
+                        },
+                        "dependsOn": []
+                },
+                {
 			"type": "Microsoft.Storage/storageAccounts",
 			"name": "[variables('infranodeStorageName')]",
 			"apiVersion": "[variables('apiVersion')]",
@@ -645,23 +705,50 @@
 				"subnets": [{
 						"name": "[variables('infranodesubnetName')]",
 						"properties": {
-							"addressPrefix": "[variables('infranodesubnetPrefix')]"
+                                                        "addressPrefix": "[variables('infranodesubnetPrefix')]",
+                                                        "routeTable": {
+                                                                "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTableName'))]"
+                                                        }
 						}
 					},
 					{
 						"name": "[variables('nodesubnetName')]",
 						"properties": {
-							"addressPrefix": "[variables('nodesubnetPrefix')]"
+							"addressPrefix": "[variables('nodesubnetPrefix')]",
+                                                        "routeTable": {
+                                                                "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTableName'))]"
+                                                        }
 						}
 					},
 					{
 						"name": "[variables('mastersubnetName')]",
 						"properties": {
-							"addressPrefix": "[variables('mastersubnetPrefix')]"
+							"addressPrefix": "[variables('mastersubnetPrefix')]",
+                                                        "routeTable": {
+                                                                "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTableName'))]"
+                                                        }
 						}
 					}
-				]
-			}
+				],
+                                "virtualNetworkPeerings": [
+                                  {
+                                    "name": "LinkToOAM",
+                                    "properties": {
+                                      "remoteVirtualNetwork": {
+                                        "id": "[parameters('peeringNetworkId')]"
+                                      },
+                                      "allowVirtualNetworkAccess": true,
+                                      "allowForwardedTraffic": true,
+                                      "allowGatewayTransit": false,
+                                      "useRemoteGateways": true
+                                    }
+                                  }
+                                ]
+                        },
+                        "dependsOn": [
+                          "[resourceId('Microsoft.Network/routeTables', parameters('routeTableName'))]"
+                        ]
+
 		},
 		{
 			"name": "[concat('nodeSet', copyindex())]",
