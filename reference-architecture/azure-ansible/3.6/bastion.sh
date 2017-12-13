@@ -891,7 +891,7 @@ create_node_azure()
 {
   common_azure
   export SUBNET="nodeSubnet"
-  export SA="sanod\${RESOURCEGROUP}"
+  export SA="sanod\${RESOURCEGROUP//-}"
   create_host_azure
 }
 
@@ -899,8 +899,8 @@ create_master_azure()
 {
   common_azure
   export SUBNET="masterSubnet"
-  export SA="samas\${RESOURCEGROUP}"
-  export LB="MasterLb\${RESOURCEGROUP}"
+  export SA="samas\${RESOURCEGROUP//-}"
+  export LB="MasterLb\${RESOURCEGROUP//-}"
   create_host_azure
   create_nsg_azure
   create_nsg_rules_master_azure
@@ -912,7 +912,7 @@ create_infranode_azure()
 {
   common_azure
   export SUBNET="infranodeSubnet"
-  export SA="sanod\${RESOURCEGROUP}"
+  export SA="sanod\${RESOURCEGROUP//-}"
   export LB=\$(azure network lb list \${RESOURCEGROUP} --json | jq -r '.[].name' | grep -v "MasterLb")
   create_host_azure
   create_nsg_azure
@@ -1137,7 +1137,7 @@ metadata:
     volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/azure-disk
 provisioner: kubernetes.io/azure-disk
 parameters:
-  storageAccount: sapv${RESOURCEGROUP}
+  storageAccount: sapv${RESOURCEGROUP//-}
 EOF
 
 cat <<EOF > /home/${AUSERNAME}/openshift-install.sh
@@ -1169,10 +1169,10 @@ oc env dc docker-registry -e REGISTRY_STORAGE=azure -e REGISTRY_STORAGE_AZURE_AC
 oc patch dc registry-console -p '{"spec":{"template":{"spec":{"nodeSelector":{"role":"infra"}}}}}'
 sleep 30
 echo "Setup Azure PV"
-/home/${AUSERNAME}/create_azure_storage_container.sh sapv${RESOURCEGROUP} "vhds"
+/home/${AUSERNAME}/create_azure_storage_container.sh sapv${RESOURCEGROUP//-} "vhds"
 
 echo "Setup Azure PV for metrics & logging"
-/home/${AUSERNAME}/create_azure_storage_container.sh sapvlm${RESOURCEGROUP} "loggingmetricspv"
+/home/${AUSERNAME}/create_azure_storage_container.sh sapvlm${RESOURCEGROUP//-} "loggingmetricspv"
 
 oc adm policy add-cluster-role-to-user cluster-admin ${AUSERNAME}
 # Workaround for BZ1469358
@@ -1199,7 +1199,7 @@ done
 if [ \${DEPLOYMETRICS} == "true" ]
 then
   echo "Deploying Metrics"
-  /home/${AUSERNAME}/create_pv.sh sapvlm${RESOURCEGROUP} loggingmetricspv metricspv ${METRICS_INSTANCES} ${METRICS_CASSANDRASIZE}
+  /home/${AUSERNAME}/create_pv.sh sapvlm${RESOURCEGROUP//-} loggingmetricspv metricspv ${METRICS_INSTANCES} ${METRICS_CASSANDRASIZE}
   ansible-playbook -e "openshift_metrics_install_metrics=\${DEPLOYMETRICS}" /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-cluster/openshift-metrics.yml
 fi
 
@@ -1207,7 +1207,7 @@ if [ \${DEPLOYLOGGING} == "true" ] || [ \${DEPLOYOPSLOGGING} == "true" ]
 then
   if [ \${DEPLOYLOGGING} == "true" ]
   then
-    /home/${AUSERNAME}/create_pv.sh sapvlm${RESOURCEGROUP} loggingmetricspv loggingpv ${LOGGING_ES_INSTANCES} ${LOGGING_ES_SIZE}
+    /home/${AUSERNAME}/create_pv.sh sapvlm${RESOURCEGROUP//-} loggingmetricspv loggingpv ${LOGGING_ES_INSTANCES} ${LOGGING_ES_SIZE}
     for ((i=0;i<${LOGGING_ES_INSTANCES};i++))
     do
       oc patch pv/loggingpv-\${i} -p '{"metadata":{"labels":{"usage":"elasticsearch"}}}'
@@ -1216,7 +1216,7 @@ then
 
   if [ \${DEPLOYOPSLOGGING} == true ]
   then
-    /home/${AUSERNAME}/create_pv.sh sapvlm${RESOURCEGROUP} loggingmetricspv loggingopspv ${OPSLOGGING_ES_INSTANCES} ${OPSLOGGING_ES_SIZE}
+    /home/${AUSERNAME}/create_pv.sh sapvlm${RESOURCEGROUP//-} loggingmetricspv loggingopspv ${OPSLOGGING_ES_INSTANCES} ${OPSLOGGING_ES_SIZE}
     for ((i=0;i<${OPSLOGGING_ES_INSTANCES};i++))
     do
       oc patch pv/loggingopspv-\${i} -p '{"metadata":{"labels":{"usage":"opselasticsearch"}}}'
