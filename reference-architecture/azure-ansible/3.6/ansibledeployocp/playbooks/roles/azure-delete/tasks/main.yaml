@@ -1,93 +1,101 @@
 ---
-- name: Destroy Azure | Gather list of VMs
-  shell:  az vm list -g "{{ resourcegroupname }}" --query "[].name" -o tsv
-  register: vm_list
+- name: Destroy Azure | Check for ResourceGroup
+  shell: az group exists --name "{{ resourcegroupname }}"
+  register: rg_exist
+#- debug: var=rg_exist
 
-- name: Destroy Azure | Delete VMs
-  azure_rm_virtualmachine:
-    resource_group: "{{ resourcegroupname }}"
-    name: "{{ item }}"
-    state: absent
-    remove_on_absent:
-      - network_interfaces
-      - public_ips
-  with_items: 
-    - "{{ vm_list.stdout_lines }}"
+- block:
+    - debug: var=rg_exist
 
-- name: Destroy Azure | Gather list of StorageAccounts
-  shell:  az storage account list -g "{{ resourcegroupname }}" --query "[].name" -o tsv
-  register: sa_list
-
-- name: Destroy Azure | Delete Storage Accounts
-  azure_rm_storageaccount:
-    resource_group: "{{ resourcegroupname }}"
-    name: "{{ item }}"
-    state: absent
-  with_items: 
-    - "{{ sa_list.stdout_lines }}"
-
-- name: Destroy Azure | Gather list of AvailabilitySets
-  shell:  az vm availability-set list -g  "{{ resourcegroupname }}" --query "[].name" -o tsv
-  register: as_list
-
-- name: Destroy Azure | Delete Availability Sets
-  azure_rm_availabilityset:
-    name: "{{ item }}"
-    location: "{{ location }}"
-    resource_group: "{{ resourcegroupname }}"
-    state: absent
-  with_items:
-    - "{{ as_list.stdout_lines }}"
-
-- name: Destroy Azure | Gather list of LoadBalancers
-  shell:  az network lb list -g "{{ resourcegroupname }}"  --query "[].name" -o tsv
-  register: lb_list
-
-- name: Destroy Azure | Delete LoadBalancers
-  azure_rm_loadbalancer:
-    name: "{{ item }}"
-    location: "{{ location }}"
-    resource_group: "{{ resourcegroupname }}"
-    state: absent
-  with_items:
-    - "{{ lb_list.stdout_lines }}"
-
-- name: Destroy Azure | Gather list of NICs
-  shell:  az network nic list -g "{{ resourcegroupname }}"  --query "[].name" -o tsv
-  register: nic_list
-
-- name: Destroy Azure | Delete NICs
-  azure_rm_networkinterface:
+    - name: Destroy Azure | Gather list of VMs
+      shell:  az vm list -g "{{ resourcegroupname }}" --query "[].name" -o tsv
+      register: vm_list
+    
+    - name: Destroy Azure | Delete VMs
+      azure_rm_virtualmachine:
         resource_group: "{{ resourcegroupname }}"
         name: "{{ item }}"
         state: absent
-  with_items:
-    - "{{ nic_list.stdout_lines }}"
-
-- name: Destroy Azure | Gather list of PublicIPs
-  shell:  az network public-ip list -g "{{ resourcegroupname }}"  --query "[].name" -o tsv
-  register: pip_list
-
-- name: Destroy Azure | Delete PublicIPs 
-  azure_rm_publicipaddress:
-    resource_group: "{{ resourcegroupname }}"
-    name: "{{ item }}"
-    state: absent
-  with_items:
-    - "{{ pip_list.stdout_lines }}"
-
-- name: Destroy Azure | Gather list of Network Security Groups
-  shell:  az network nsg list -g "{{ resourcegroupname }}"  --query "[].name" -o tsv
-  register: nsg_list
-
-- name: Destroy Azure | Delete Network Security Groups
-  azure_rm_securitygroup:
-    resource_group: "{{ resourcegroupname }}"
-    name: "{{ item }}"
-    state: absent
-  with_items:
-    - "{{ nsg_list.stdout_lines }}"
-
+        remove_on_absent:
+          - network_interfaces
+          - public_ips
+      with_items: 
+        - "{{ vm_list.stdout_lines }}"
+    
+    - name: Destroy Azure | Gather list of StorageAccounts
+      shell:  az storage account list -g "{{ resourcegroupname }}" --query "[].name" -o tsv
+      register: sa_list
+    
+    - name: Destroy Azure | Delete Storage Accounts
+      azure_rm_storageaccount:
+        resource_group: "{{ resourcegroupname }}"
+        name: "{{ item }}"
+        state: absent
+      with_items: 
+        - "{{ sa_list.stdout_lines }}"
+    
+    - name: Destroy Azure | Gather list of AvailabilitySets
+      shell:  az vm availability-set list -g  "{{ resourcegroupname }}" --query "[].name" -o tsv
+      register: as_list
+    
+    - name: Destroy Azure | Delete Availability Sets
+      azure_rm_availabilityset:
+        name: "{{ item }}"
+        location: "{{ location }}"
+        resource_group: "{{ resourcegroupname }}"
+        state: absent
+      with_items:
+        - "{{ as_list.stdout_lines }}"
+    
+    - name: Destroy Azure | Gather list of LoadBalancers
+      shell:  az network lb list -g "{{ resourcegroupname }}"  --query "[].name" -o tsv
+      register: lb_list
+    
+    - name: Destroy Azure | Delete LoadBalancers
+      azure_rm_loadbalancer:
+        name: "{{ item }}"
+        location: "{{ location }}"
+        resource_group: "{{ resourcegroupname }}"
+        state: absent
+      with_items:
+        - "{{ lb_list.stdout_lines }}"
+    
+    - name: Destroy Azure | Gather list of NICs
+      shell:  az network nic list -g "{{ resourcegroupname }}"  --query "[].name" -o tsv
+      register: nic_list
+    
+    - name: Destroy Azure | Delete NICs
+      azure_rm_networkinterface:
+            resource_group: "{{ resourcegroupname }}"
+            name: "{{ item }}"
+            state: absent
+      with_items:
+        - "{{ nic_list.stdout_lines }}"
+    
+    - name: Destroy Azure | Gather list of PublicIPs
+      shell:  az network public-ip list -g "{{ resourcegroupname }}"  --query "[].name" -o tsv
+      register: pip_list
+    
+    - name: Destroy Azure | Delete PublicIPs 
+      azure_rm_publicipaddress:
+        resource_group: "{{ resourcegroupname }}"
+        name: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ pip_list.stdout_lines }}"
+    
+    - name: Destroy Azure | Gather list of Network Security Groups
+      shell:  az network nsg list -g "{{ resourcegroupname }}"  --query "[].name" -o tsv
+      register: nsg_list
+    
+    - name: Destroy Azure | Delete Network Security Groups
+      azure_rm_securitygroup:
+        resource_group: "{{ resourcegroupname }}"
+        name: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ nsg_list.stdout_lines }}"
+  when: rg_exist.stdout == 'true'
 
 #- name: Destroy Azure Deploy
 #  azure_rm_deployment:
