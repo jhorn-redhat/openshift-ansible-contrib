@@ -1,6 +1,2 @@
-[bastions]
-<myresourcegroup>b.<region>.cloudapp.azure.com
-
-[bastions:vars]
-ansible_ssh_user=<myuser>
-remote_password=<mypassword>
+[localhost]
+127.0.0.1  ansible_connection=local
