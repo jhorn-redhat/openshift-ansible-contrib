@@ -94,6 +94,13 @@ $ vim vars.yaml
 * wildcardzone: Subdomain for applications in the OpenShift cluster (required by the load balancer, but nip.io will be used). It is just the subdomain, not the full FQDN.
 
 Optional (default values are set in [playbooks/roles/azure-deploy/default/main.yaml](playbooks/roles/azure-deploy/default/main.yaml))
+**NOTE:** Named Certificate Support: cat <certfile> |base64 | tr -d '\n'
+* routercertdata: ""
+* routerkeydata: ""
+* routercadata: ""
+* mastercertdata: ""
+* masterkeydata: ""
+* mastercadata: ""
 * templatelink: The ARM template that will be deployed
 * numberofnodes: From 3 to 30 nodes
 * image: The operating system image that will be used to create the instances
