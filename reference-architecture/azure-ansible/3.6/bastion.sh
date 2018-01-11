@@ -409,6 +409,14 @@ openshift_node_labels=\"{'role':'app','zone':'default','logging':'true'}\"" >> /
 done
 
 
+# FIX: if specifying specific version openshift_pkg_version
+#      this will enable the installation of atomic-openshift{{ openshift_pkg_version }}
+#      in subscribe.yml below
+if [[ ! $(grep -q openshift_pkg_version /etc/ansible/hosts) ]];then 
+  pkg_version=$(awk -F'=' '/^openshift_pkg_version/ {print $2}'  /etc/ansible/hosts)
+  echo "FOUND: openshift_pkg_version ${pkg_version}"
+fi
+
 cat <<EOF > /home/${AUSERNAME}/subscribe.yml
 ---
 - hosts: all
@@ -470,12 +478,25 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
     shell: subscription-manager repos --enable="rhel-7-server-ose-3.6-rpms"
   - name: install the latest version of PyYAML
     yum: name=PyYAML state=latest
-  - name: Install the OCP client
-    yum: name=atomic-openshift-clients state=latest
-  - name: Install atomic-openshift
-    yum: name=atomic-openshift state=latest
-  - name: Update all hosts
-    yum: name="*" state=latest
+  - name: Update all hosts"
+    yum: name="*" state=latest exclude="atomic-openshift,atomic-openshift-clients"
+
+EOF
+
+if [[ ${pkg_version} != "" ]]
+then
+    echo "  - name: Install the OCP client" >> /home/${AUSERNAME}/subscribe.yml
+    echo "    yum: name=atomic-openshift-clients${pkg_version} state=present" >> /home/${AUSERNAME}/subscribe.yml
+    echo "  - name: Install atomic-openshift${pkg_version}"                 >> /home/${AUSERNAME}/subscribe.yml
+    echo "    yum: name=atomic-openshift${pkg_version} state=present"       >> /home/${AUSERNAME}/subscribe.yml
+else
+    echo "  - name: Install the OCP client" >> /home/${AUSERNAME}/subscribe.yml
+    echo "  yum: name=atomic-openshift-clients state=latest" >> /home/${AUSERNAME}/subscribe.yml
+    echo "  - name: Install atomic-openshift"                 >> /home/${AUSERNAME}/subscribe.yml
+    echo "    yum: name=atomic-openshift state=latest"       >> /home/${AUSERNAME}/subscribe.yml
+fi
+
+cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
   - name: Install the docker
     yum: name=docker state=latest
   - name: Start Docker
