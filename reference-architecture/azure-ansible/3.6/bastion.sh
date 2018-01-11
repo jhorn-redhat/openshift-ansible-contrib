@@ -283,6 +283,7 @@ openshift_master_console_port="{{ console_port }}"
 openshift_override_hostname_check=true
 osm_use_cockpit=false
 openshift_release=v3.6
+openshift_pkg_version=-3.6.173.0.49
 openshift_cloudprovider_kind=azure
 openshift_node_local_quota_per_fsgroup=512Mi
 azure_resource_group=${RESOURCEGROUP}
