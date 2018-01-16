@@ -289,6 +289,7 @@ cat > /home/${AUSERNAME}/setup-azure-node.yml <<EOF
     - key: kubeletArguments.cloud-provider
       value:
       - azure
+    register: node_config
     notify:
     - restart atomic-openshift-node
     - delete node
