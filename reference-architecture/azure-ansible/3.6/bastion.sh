@@ -258,6 +258,124 @@ cat > /home/${AUSERNAME}/azure-config.yml <<EOF
         }
 EOF
 
+# Create Azure Cloud Provider configuration Playbook for Node Config
+
+cat > /home/${AUSERNAME}/setup-azure-node.yml <<EOF
+#!/usr/bin/ansible-playbook
+- hosts: nodes
+  gather_facts: yes
+  become: yes
+  vars:
+    node_conf: /etc/origin/node/node-config.yaml
+  handlers:
+  - name: restart atomic-openshift-node
+    systemd:
+      state: restarted
+      name: atomic-openshift-node
+  - name: delete node
+    command: oc delete node {{ ansible_nodename }}
+    delegate_to: "{{ groups['masters'][0] }}"
+  tasks:
+  - name: insert the azure disk config into the node
+    modify_yaml:
+      dest: "{{ node_conf }}"
+      yaml_key: "{{ item.key }}"
+      yaml_value: "{{ item.value }}"
+    with_items:
+    - key: kubeletArguments.cloud-config
+      value:
+      - /etc/azure/azure.conf
+
+    - key: kubeletArguments.cloud-provider
+      value:
+      - azure
+    notify:
+    - restart atomic-openshift-node
+    - delete node
+
+- hosts: nodes
+  become: no
+  tasks:
+  - name: Wait for node state Ready
+    shell: oc get node {{ ansible_nodename }} | grep -q ' Ready'
+    ignore_errors: yes
+    delegate_to: "{{ groups['masters'][0] }}"
+    register: node_ready
+    until: node_ready.rc == 0
+    retries: 12
+    delay: 5
+
+- hosts: masters
+  become: no
+  tasks:
+  - name: Mark masters as unschedulable
+    command: oadm manage-node {{ ansible_nodename }} --schedulable=false
+    delegate_to: "{{ groups['masters'][0] }}"
+
+  - name: Set master node labels
+    command: oc label --overwrite node {{ ansible_nodename }} role=master zone=default logging=true
+    delegate_to: "{{ groups['masters'][0] }}"
+
+# There are no groups for infrastructure or application nodes in the inventory.
+# The number of infranodes is fixed. For now, we assume that there are 3 application
+# nodes.
+- hosts: "{{ groups['masters'][0] }}"
+  become: no
+  tasks:
+  - name: Set infranode labels
+    command: oc label --overwrite node {{ item }} role=infra zone=default logging=true
+    with_items:
+    - infranode1
+    - infranode2
+    - infranode3
+
+  - name: Set application node labels
+    command: oc label --overwrite node {{ item }} role=app zone=default logging=true
+    with_items:
+    - node01
+    - node02
+    - node03
+
+- hosts: nodes
+  become: yes
+  tasks:
+  # Run the reboot asynchronously and let the managed system wait
+  # for 1 minute before rebooting. If we reboot immediately, the 
+  # SSH connection breaks and the playbook run for this host 
+  # would be aborted.
+  - name: Reboot node
+    command: shutdown -r +1
+    async: 600
+    poll: 0
+    when: node_config.changed
+
+  - name: Wait for node to come back
+    local_action: wait_for
+    args:
+      host: "{{ ansible_nodename }}"
+      port: 22
+      state: started
+      # Wait for the reboot delay from the previous task plus 10 seconds.
+      # Otherwise, the SSH port would still be open because the system
+      # has not rebooted.
+      delay: 70 
+      timeout: 600
+    register: wait_for_reboot
+    when: node_config.changed
+
+- hosts: nodes
+  become: no
+  tasks:
+  - name: Wait for node state Ready
+    shell: oc get node {{ ansible_nodename }} | grep -q ' Ready'
+    ignore_errors: yes
+    delegate_to: "{{ groups['masters'][0] }}"
+    register: node_ready
+    until: node_ready.rc == 0
+    retries: 12
+    delay: 5
+EOF
+
 cat <<EOF > /etc/ansible/hosts
 [OSEv3:children]
 masters
@@ -267,9 +385,10 @@ new_nodes
 new_masters
 
 [OSEv3:vars]
+
 osm_controller_args={'cloud-provider': ['azure'], 'cloud-config': ['/etc/azure/azure.conf']}
 osm_api_server_args={'cloud-provider': ['azure'], 'cloud-config': ['/etc/azure/azure.conf']}
-openshift_node_kubelet_args={'cloud-provider': ['azure'], 'cloud-config': ['/etc/azure/azure.conf'], 'enable-controller-attach-detach': ['true']}
+openshift_node_kubelet_args={'enable-controller-attach-detach': ['true']}
 debug_level=2
 console_port=443
 docker_udev_workaround=True
@@ -283,7 +402,7 @@ openshift_master_console_port="{{ console_port }}"
 openshift_override_hostname_check=true
 osm_use_cockpit=false
 openshift_release=v3.6
-openshift_pkg_version=-3.6.173.0.63
+#openshift_pkg_version=-3.6.173.0.63
 openshift_cloudprovider_kind=azure
 openshift_node_local_quota_per_fsgroup=512Mi
 azure_resource_group=${RESOURCEGROUP}
@@ -1175,6 +1294,8 @@ wget http://master1:443/api > healtcheck.out
 
 ansible all -b -m command -a "nmcli con modify eth0 ipv4.dns-search $(domainname -d)"
 ansible all -b -m service -a "name=NetworkManager state=restarted"
+
+ansible-playbook  /home/${AUSERNAME}/setup-azure-node.yml
 
 ansible-playbook /home/${AUSERNAME}/postinstall.yml
 cd /root
