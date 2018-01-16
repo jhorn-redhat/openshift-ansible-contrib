@@ -610,7 +610,7 @@ then
     echo "    yum: name=atomic-openshift${pkg_version} state=present"       >> /home/${AUSERNAME}/subscribe.yml
 else
     echo "  - name: Install the OCP client" >> /home/${AUSERNAME}/subscribe.yml
-    echo "  yum: name=atomic-openshift-clients state=latest" >> /home/${AUSERNAME}/subscribe.yml
+    echo "    yum: name=atomic-openshift-clients state=latest" >> /home/${AUSERNAME}/subscribe.yml
     echo "  - name: Install atomic-openshift"                 >> /home/${AUSERNAME}/subscribe.yml
     echo "    yum: name=atomic-openshift state=latest"       >> /home/${AUSERNAME}/subscribe.yml
 fi
