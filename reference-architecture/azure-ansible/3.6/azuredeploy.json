@@ -39,6 +39,12 @@
 				"description": "Router CA file"
 			}
 		},
+		"customDNS": {
+			"type": "string",
+			"metadata": {
+				"description": "Custom Domain and Nameserver for dnsmasq"
+			}
+		},
 		"autoInstall": {
 			"type": "string",
 			"metadata": {
@@ -809,6 +815,9 @@
 					"masterUrl": {
 						"value": "[parameters('masterUrl')]"
 					},
+					"customDNS": {
+						"value": "[parameters('customDNS')]"
+					},
 					"autoInstall": {
 						"value": "[parameters('autoInstall')]"
 					}
@@ -1185,7 +1194,7 @@
 			"properties": {
 				"publicIPAllocationMethod": "Static",
 				"dnsSettings": {
-					"domainNameLabel": "[parameters('WildcardZone')]"
+					"domainNameLabel": "[concat(parameters('WildcardZone'), 'spec')]"
 				}
 			}
 		},

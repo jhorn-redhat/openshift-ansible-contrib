@@ -39,9 +39,11 @@ export MASTERCA=${array[33]}
 export ROUTERKEY=${array[34]}
 export ROUTERCERT=${array[35]}
 export ROUTERCA=${array[36]}
-export AUTOINSTALL=${array[37]}
+export CUSTOMDNS=${array[37]}
+export AUTOINSTALL=${array[38]}
 export FULLDOMAIN=${THEHOSTNAME#*.*}
-export WILDCARDFQDN=${WILDCARDZONE}.${FULLDOMAIN}
+# for lab / dev + spec for prod remove spec
+export WILDCARDFQDN=${WILDCARDZONE}spec.${FULLDOMAIN}
 export WILDCARDIP=`dig +short ${WILDCARDFQDN}`
 export WILDCARDNIP=${WILDCARDIP}.nip.io
 export LOGGING_ES_INSTANCES="3"
@@ -90,6 +92,23 @@ ps -ef | grep bastion.sh > cmdline.out
 systemctl enable dnsmasq.service
 systemctl start dnsmasq.service
 
+# add users for octopus and bamboo
+useradd -md /home/bamboo -s /bin/bash bamboo
+useradd -md /home/octopus -s /bin/bash octopus
+mkdir -m 700 /home/bamboo/.ssh
+mkdir -m 700 /home/octopus/.ssh
+
+cat > /home/bamboo/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDquVPz50NcZHo4NHFH4wKKJulZZOet0lx0XhvAhKScve+ujgyl564Sebz0BcJH2F+Kev4LjKHn2CsCmDISAxg+icgkjUb8B8QcFI78uK1byy1NaZMdQ6O5mXHaDyWv0LGQby29rxTBM5rQJWuyqJ9x7MLlnPd2FxGqTq8RRzENGJXNFA7TUtYDPFqWkVCrfswIjEfcPCr8/+aotKNnt8egPJwXs2uD1BZRhiKH0HmEyLfpszno1UKYV7HCfm4kX6KyUR2stQy7mrnmoMt8KtOc5MsUtuGew+qdep2bRinQY/P6xQo+8uryQUdtzSDVRC9rBc0ISYbncLUyy87g7qUj bamboo@bastion
+EOF
+
+cat > /home/octopus/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD1mk5kxkiV9MVOzM+lwn6fWtUwqj7UWrRB7+UHwR9tMVCAeXZitAO0u+kKFwcC5RaHF3YBYbCJQU8vH/GOkbxrbWHMJDfZWG+brX5QCTRthtA/PWTdRsivjCEyb70Yq2aaw9G8ygYTJG0uGNaybvWqiEC6OkPROXxbiTz4Zs7uQhjpy1man5z3Oye0DhYBYN6ehUwfFPf0HlKYsGD4izl3XEwOVxFNlSSN3piVgeqf/NtZ7JXntvz2TVPhBaH/Kp5tbetfEvJLNDETFlFlSBDBRjablJ0Ivg63ka8w7GqV718WN0Q5xpxxGD9+sIHdaLQ5dlJoQjQMZEyGt4KKjp7x octopus@bastion
+EOF
+chmod 644 /home/bamboo/.ssh/authorized_keys
+chmod 644 /home/octopus/.ssh/authorized_keys
+
+###
 echo "Resize Root FS"
 rootdev=`findmnt --target / -o SOURCE -n`
 rootdrivename=`lsblk -no pkname $rootdev`
@@ -203,6 +222,89 @@ subscription-manager repos --enable="rhel-7-server-ose-3.6-rpms"
 yum -y install atomic-openshift-utils git net-tools bind-utils iptables-services bridge-utils bash-completion httpd-tools nodejs qemu-img
 yum -y install --enablerepo="epel" jq
 touch /root/.updateok
+
+
+if [[ ${CUSTOMDNS} != "false" ]]; then
+  DOMAIN=$(echo ${CUSTOMDNS} | awk -F'=' '{print $1}')
+  NAMESERVER=$(echo ${CUSTOMDNS} | awk -F'=' '{print $2}')
+fi
+
+cat > /home/${AUSERNAME}/bastion-dnsmasq.yml <<EOF
+- hosts: localhost
+  gather_facts: yes
+  become: yes
+  vars:
+    domain: ${DOMAIN}
+    nameserver: ${NAMESERVER}
+  tasks:
+    - name: install dnsmasq
+      yum:
+        state: installed
+        name: dnsmasq
+      notifY:
+        - restart dnsmasq
+
+    - name: create custom dnsmasq domain
+      copy:
+        content: |
+          server=/{{ domain }}/{{ nameserver }}
+        dest: /etc/dnsmasq.d/honeywell-dnsmasq.conf
+      notify:
+        - restart dnsmasq
+
+    - name: create dns.conf
+      copy:
+        content: |
+          no-resolv
+          domain-needed
+          no-negcache
+          max-cache-ttl=1
+          enable-dbus
+          bind-interfaces
+          listen-address={{ ansible_default_ipv4.address }}
+        dest: /etc/dnsmasq.d/dns.conf
+      notify:
+        - restart dnsmasq
+
+    - name: create upstream-dns.conf
+      copy:
+        content: |
+          server=168.63.129.16
+        dest: /etc/dnsmasq.d/upstream-dns.conf
+      notify:
+        - restart dnsmasq
+
+
+  handlers:
+    - name: restart dnsmasq
+      systemd:
+        name: dnsmasq
+        state: restarted
+EOF
+
+
+cat > /home/${AUSERNAME}/custom-dnsmasq-domain.yml <<EOF
+- hosts: all
+  gather_facts: no
+  become: yes
+  vars:
+    domain: ${DOMAIN}
+    nameserver: ${NAMESERVER}
+  tasks:
+    - name: create custom dnsmasq domain
+      copy:
+        content: |
+          server=/{{ domain }}/{{ nameserver }}
+        dest: /etc/dnsmasq.d/honeywell-dnsmasq.conf
+      notify:
+        - restart dnsmasq
+
+  handlers:
+    - name: restart dnsmasq
+      systemd:
+        name: dnsmasq
+        state: restarted
+EOF
 
 # Create azure.conf file
 
@@ -469,8 +571,8 @@ openshift_master_cluster_hostname=${PUBLICHOSTNAME}
 openshift_master_cluster_public_hostname=${PUBLICHOSTNAME}
 
 # Do not install metrics but post install
-openshift_metrics_install_metrics=false
-openshift_metrics_cassandra_storage_type=pv
+openshift_metrics_install_metrics=true
+openshift_metrics_cassandra_storage_type=dynamic
 openshift_metrics_cassandra_pvc_size="${METRICS_CASSANDRASIZE}G"
 openshift_metrics_cassandra_replicas="${METRICS_INSTANCES}"
 openshift_metrics_hawkular_nodeselector={"role":"infra"}
@@ -478,10 +580,10 @@ openshift_metrics_cassandra_nodeselector={"role":"infra"}
 openshift_metrics_heapster_nodeselector={"role":"infra"}
 
 # Do not install logging but post install
-openshift_logging_install_logging=false
+openshift_logging_install_logging=true
 openshift_logging_master_public_url=https://${PUBLICHOSTNAME}
-openshift_logging_es_pv_selector={"usage":"elasticsearch"}
-openshift_logging_es_pvc_dynamic="false"
+#openshift_logging_es_pv_selector={"usage":"elasticsearch"}
+openshift_logging_es_pvc_dynamic="true"
 openshift_logging_es_pvc_size="${LOGGING_ES_SIZE}G"
 openshift_logging_es_cluster_size=${LOGGING_ES_INSTANCES}
 openshift_logging_fluentd_nodeselector={"logging":"true"}
@@ -490,8 +592,8 @@ openshift_logging_kibana_nodeselector={"role":"infra"}
 openshift_logging_curator_nodeselector={"role":"infra"}
 
 openshift_logging_use_ops=false
-openshift_logging_es_ops_pv_selector={"usage":"opselasticsearch"}
-openshift_logging_es_ops_pvc_dynamic="false"
+#openshift_logging_es_ops_pv_selector={"usage":"opselasticsearch"}
+openshift_logging_es_ops_pvc_dynamic="true"
 openshift_logging_es_ops_pvc_size="${OPSLOGGING_ES_SIZE}G"
 openshift_logging_es_ops_cluster_size=${OPSLOGGING_ES_INSTANCES}
 openshift_logging_es_ops_nodeselector={"role":"infra"}
@@ -1296,6 +1398,18 @@ wget http://master1:443/api > healtcheck.out
 ansible all -b -m command -a "nmcli con modify eth0 ipv4.dns-search $(domainname -d)"
 ansible all -b -m service -a "name=NetworkManager state=restarted"
 
+EOF
+
+if [[ ${CUSTOMDNS} != "false" ]];then
+  echo "# setup custom dnsmasq domain" >> /home/${AUSERNAME}/openshift-install.sh
+  echo "ansible-playbook /home/${AUSERNAME}/custom-dnsmasq-domain.yml" >> /home/${AUSERNAME}/openshift-install.sh
+fi
+
+cat <<EOF >> /home/${AUSERNAME}/openshift-install.sh
+
+# setup dnsmasq on bastion
+ansible-playbook /home/${AUSERNAME}/bastion-dnsmasq.yml
+
 ansible-playbook  /home/${AUSERNAME}/setup-azure-node.yml
 
 ansible-playbook /home/${AUSERNAME}/postinstall.yml
@@ -1340,36 +1454,39 @@ do
   [ -e /home/${AUSERNAME}/.openshiftcomplete ] && break || sleep 10
 done
 
+# JTH: Moved to top for dynamic provisioning
+oc create -f /home/${AUSERNAME}/scgeneric.yml
+
 if [ \${DEPLOYMETRICS} == "true" ]
 then
   echo "Deploying Metrics"
-  /home/${AUSERNAME}/create_pv.sh sapvlm${RESOURCEGROUP//-} loggingmetricspv metricspv ${METRICS_INSTANCES} ${METRICS_CASSANDRASIZE}
+  #/home/${AUSERNAME}/create_pv.sh sapvlm${RESOURCEGROUP//-} loggingmetricspv metricspv ${METRICS_INSTANCES} ${METRICS_CASSANDRASIZE}
   ansible-playbook -e "openshift_metrics_install_metrics=\${DEPLOYMETRICS}" /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-cluster/openshift-metrics.yml
 fi
 
-if [ \${DEPLOYLOGGING} == "true" ] || [ \${DEPLOYOPSLOGGING} == "true" ]
-then
-  if [ \${DEPLOYLOGGING} == "true" ]
-  then
-    /home/${AUSERNAME}/create_pv.sh sapvlm${RESOURCEGROUP//-} loggingmetricspv loggingpv ${LOGGING_ES_INSTANCES} ${LOGGING_ES_SIZE}
-    for ((i=0;i<${LOGGING_ES_INSTANCES};i++))
-    do
-      oc patch pv/loggingpv-\${i} -p '{"metadata":{"labels":{"usage":"elasticsearch"}}}'
-    done
-  fi
+#JTH: removed, using dynamic provisioning
+#if [ \${DEPLOYLOGGING} == "true" ] || [ \${DEPLOYOPSLOGGING} == "true" ]
+#then
+#  if [ \${DEPLOYLOGGING} == "true" ]
+#  then
+#    /home/${AUSERNAME}/create_pv.sh sapvlm${RESOURCEGROUP//-} loggingmetricspv loggingpv ${LOGGING_ES_INSTANCES} ${LOGGING_ES_SIZE}
+#    for ((i=0;i<${LOGGING_ES_INSTANCES};i++))
+#    do
+#      oc patch pv/loggingpv-\${i} -p '{"metadata":{"labels":{"usage":"elasticsearch"}}}'
+#    done
+#  fi
 
-  if [ \${DEPLOYOPSLOGGING} == true ]
-  then
-    /home/${AUSERNAME}/create_pv.sh sapvlm${RESOURCEGROUP//-} loggingmetricspv loggingopspv ${OPSLOGGING_ES_INSTANCES} ${OPSLOGGING_ES_SIZE}
-    for ((i=0;i<${OPSLOGGING_ES_INSTANCES};i++))
-    do
-      oc patch pv/loggingopspv-\${i} -p '{"metadata":{"labels":{"usage":"opselasticsearch"}}}'
-    done
-  fi
+#  if [ \${DEPLOYOPSLOGGING} == true ]
+#  then
+#    /home/${AUSERNAME}/create_pv.sh sapvlm${RESOURCEGROUP//-} loggingmetricspv loggingopspv ${OPSLOGGING_ES_INSTANCES} ${OPSLOGGING_ES_SIZE}
+#    for ((i=0;i<${OPSLOGGING_ES_INSTANCES};i++))
+#    do
+#      oc patch pv/loggingopspv-\${i} -p '{"metadata":{"labels":{"usage":"opselasticsearch"}}}'
+#    done
+#  fi
   ansible-playbook -e "openshift_logging_install_logging=\${DEPLOYLOGGING} openshift_logging_use_ops=\${DEPLOYOPSLOGGING}" /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-cluster/openshift-logging.yml
-fi
+#fi
 
-oc create -f /home/${AUSERNAME}/scgeneric.yml
 EOF
 
 cat <<'EOF' > /home/${AUSERNAME}/create_pv.sh
@@ -1459,7 +1576,7 @@ EOF
 
 chmod 755 /home/${AUSERNAME}/openshift-install.sh
 chmod 755 /home/${AUSERNAME}/openshift-postinstall.sh
-
+oc create -f /home/${AUSERNAME}/scgeneric.yml
 echo "${AUTOINSTALL}" > /home/${AUSERNAME}/.autoinstall
 
 if [[ ${AUTOINSTALL} != false ]]; then

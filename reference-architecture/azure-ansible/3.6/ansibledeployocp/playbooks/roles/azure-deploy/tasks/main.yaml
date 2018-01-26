@@ -5,7 +5,7 @@
     location: "{{ location }}"
     resource_group_name: "{{ resourcegroupname }}"
     #template_link: "{{ templatelink }}"
-    template: "{{ lookup('file','{{ playbook_dir }}/../../azuredeploy.json') | from_json }}"
+    template: "{{ lookup('file','{{ playbook_dir }}/../../azuredeploy.json.sa') | from_json }}"
     parameters:
       fqdn:
         value: "{{ fqdn }}"
@@ -51,6 +51,8 @@
         value: "{{ logging }}"
       opslogging:
         value: "{{ opslogging }}"
+      customDNS:
+        value: "{{ customdns }}"
       autoInstall:
         value: "{{ autoinstall }}"
       routerCertData:
