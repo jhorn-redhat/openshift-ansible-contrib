@@ -107,7 +107,8 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD1mk5kxkiV9MVOzM+lwn6fWtUwqj7UWrRB7+UHwR9t
 EOF
 chmod 644 /home/bamboo/.ssh/authorized_keys
 chmod 644 /home/octopus/.ssh/authorized_keys
-
+chown -R  octopus:octopus /home/octopus
+chown -R  bamboo:bamboo /home/bamboo
 ###
 echo "Resize Root FS"
 rootdev=`findmnt --target / -o SOURCE -n`
@@ -546,14 +547,13 @@ fi
 if [[ ${ROUTERCERT} != 'false'  && ${ROUTERKEY} != 'false' && ${ROUTERCA} != 'false' ]]; then
   CERTDIR="/home/${AUSERNAME}/certs"
   mkdir -p ${CERTDIR}
-  echo ${ROUTERCERT} > base64 --d > ${CERTDIR}/router.crt
-  echo ${ROUTERKEY} > base64 --d > ${CERTDIR}/router.key
-  echo ${ROUTERCA} >  base64 --d > ${CERTDIR}/router.ca
+  echo ${ROUTERCERT} | base64 --d > ${CERTDIR}/router.crt
+  echo ${ROUTERKEY}  | base64 --d > ${CERTDIR}/router.key
+  echo ${ROUTERCA}   | base64 --d > ${CERTDIR}/router.ca
   cat <<EOF >> /etc/ansible/hosts
 # ROUTER Certificates
-openshift_hosted_router_certificate={"certfile": "${CERTDIR}/router.crt", "keyfile": "${CERTDIR}/router.key", "cafile": "${CERTDIR}/router.ca""]}
+openshift_hosted_router_certificate={"certfile": "${CERTDIR}/router.crt", "keyfile": "${CERTDIR}/router.key", "cafile": "${CERTDIR}/router.ca"]}
 openshift_hosted_router_create_certificate=False
-openshift_master_overwrite_named_certificates=true
 EOF
 
 fi
