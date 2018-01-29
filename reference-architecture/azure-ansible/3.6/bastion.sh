@@ -552,7 +552,6 @@ if [[ ${ROUTERCERT} != 'false'  && ${ROUTERKEY} != 'false' && ${ROUTERCA} != 'fa
   cat <<EOF >> /etc/ansible/hosts
 # ROUTER Certificates
 openshift_hosted_router_certificate={"certfile": "${CERTDIR}/router.crt", "keyfile": "${CERTDIR}/router.key", "cafile": "${CERTDIR}/router.ca""]}
-penshift_hosted_router_certificate
 openshift_hosted_router_create_certificate=False
 openshift_master_overwrite_named_certificates=true
 EOF
