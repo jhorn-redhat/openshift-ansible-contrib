@@ -519,8 +519,8 @@ openshift_master_manage_htpasswd=false
 os_sdn_network_plugin_name=${OPENSHIFTSDN}
 
 # default selectors for router and registry services
-openshift_router_selector='role=infra'
-openshift_registry_selector='role=infra'
+openshift_hosted_router_selector='role=infra'
+openshift_hosted_registry_selector='role=infra'
 
 # Select default nodes for projects
 osm_default_node_selector="role=app"
