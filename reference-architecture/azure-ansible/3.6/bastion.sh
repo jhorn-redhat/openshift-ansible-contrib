@@ -546,14 +546,13 @@ fi
 if [[ ${ROUTERCERT} != 'false'  && ${ROUTERKEY} != 'false' && ${ROUTERCA} != 'false' ]]; then
   CERTDIR="/home/${AUSERNAME}/certs"
   mkdir -p ${CERTDIR}
-  echo ${ROUTERCERT} > base64 --d > ${CERTDIR}/router.crt
-  echo ${ROUTERKEY} > base64 --d > ${CERTDIR}/router.key
-  echo ${ROUTERCA} >  base64 --d > ${CERTDIR}/router.ca
+  echo ${ROUTERCERT} | base64 --d > ${CERTDIR}/router.crt
+  echo ${ROUTERKEY}  | base64 --d > ${CERTDIR}/router.key
+  echo ${ROUTERCA}   |  base64 --d > ${CERTDIR}/router.ca
   cat <<EOF >> /etc/ansible/hosts
 # ROUTER Certificates
-openshift_hosted_router_certificate={"certfile": "${CERTDIR}/router.crt", "keyfile": "${CERTDIR}/router.key", "cafile": "${CERTDIR}/router.ca""]}
+openshift_hosted_router_certificate={"certfile": "${CERTDIR}/router.crt", "keyfile": "${CERTDIR}/router.key", "cafile": "${CERTDIR}/router.ca""}
 openshift_hosted_router_create_certificate=False
-openshift_master_overwrite_named_certificates=true
 EOF
 
 fi
