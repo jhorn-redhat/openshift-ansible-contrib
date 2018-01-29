@@ -552,7 +552,6 @@ if [[ ${ROUTERCERT} != 'false'  && ${ROUTERKEY} != 'false' && ${ROUTERCA} != 'fa
   cat <<EOF >> /etc/ansible/hosts
 # ROUTER Certificates
 openshift_hosted_router_certificate={"certfile": "${CERTDIR}/router.crt", "keyfile": "${CERTDIR}/router.key", "cafile": "${CERTDIR}/router.ca""]}
-penshift_hosted_router_certificate
 openshift_hosted_router_create_certificate=False
 openshift_master_overwrite_named_certificates=true
 EOF
@@ -623,7 +622,7 @@ infranode3 openshift_hostname=infranode3 openshift_node_labels="{'role': 'infra'
 EOF
 
 # Loop to add Nodes
-for (( c=01; c<$NODECOUNT+1; c++ ))
+for (( c=01; c<((10#$NODECOUNT+1)); c++ ))
 do
   pnum=$(printf "%02d" $c)
   echo "node${pnum} openshift_hostname=node${pnum} \

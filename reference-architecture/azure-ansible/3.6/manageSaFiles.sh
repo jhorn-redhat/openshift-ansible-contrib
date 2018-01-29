@@ -4,7 +4,7 @@
 RESOURCE_GROUP="openshift-rg"
 # Storage Account for blob container 
 STORAGE_ACCOUNT="openshiftrefarch"
-STORAGE_CONTAINER="ocp-lab"
+STORAGE_CONTAINER="ocp-dev"
 # Template that contains variables pointing to this container
 ARM_TEMPLATE="azuredeploy.json.sa"
 FILES="${ARM_TEMPLATE}  azuredeploy.parameters.json bastion.json bastion.sh infranode.json master.json master.sh node.sh node.json"
@@ -21,8 +21,7 @@ done
 }
 
 function delete() {
-for file in ${FILES}; do
-  azure storage blob delete  --delete-snapshots='include' -q  ${STORAGE_CONTAINER} ${file}
+for file in ${FILES}; do azure storage blob delete  --delete-snapshots='include' -q  ${STORAGE_CONTAINER} ${file}
 done
 }
 
