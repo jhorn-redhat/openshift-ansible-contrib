@@ -252,6 +252,12 @@ cat > /home/${AUSERNAME}/bastion-dnsmasq.yml <<EOF
       notify:
         - restart dnsmasq
 
+    - name: update resolv.conf
+      lineinfile:
+        path: /etc/resolv.conf
+        insertbefore: '^nameserver '
+        line: 'nameserver {{ ansible_default_ipv4.address }}'
+
     - name: create dns.conf
       copy:
         content: |
