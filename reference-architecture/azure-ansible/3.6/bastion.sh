@@ -239,7 +239,7 @@ cat > /home/${AUSERNAME}/bastion-dnsmasq.yml <<EOF
       yum:
         state: installed
         name: dnsmasq
-      notifY:
+      notify:
         - restart dnsmasq
 
     - name: create custom dnsmasq domain
