@@ -228,9 +228,6 @@ touch /root/.updateok
 if [[ ${CUSTOMDNS} != "false" ]]; then
   DOMAIN=$(echo ${CUSTOMDNS} | awk -F'=' '{print $1}')
   NAMESERVER=$(echo ${CUSTOMDNS} | awk -F'=' '{print $2}')
-fi
-
-
 cat > /home/${AUSERNAME}/bastion-dnsmasq.yml <<EOF
 - hosts: localhost
   gather_facts: yes
@@ -313,6 +310,8 @@ cat > /home/${AUSERNAME}/custom-dnsmasq-domain.yml <<EOF
         name: dnsmasq
         state: restarted
 EOF
+
+fi # end custom dns 
 
 # Create azure.conf file
 
@@ -1395,11 +1394,11 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 sleep 120
 ansible all --module-name=ping > ansible-preinstall-ping.out || true
 
-# setup dnsmasq on bastion
-ansible-playbook /home/${AUSERNAME}/bastion-dnsmasq.yml
 EOF
 
 if [[ ${CUSTOMDNS} != "false" ]];then
+  echo "# setup dnsmasq on bastion" >> /home/${AUSERNAME}/openshift-install.sh
+  echo "ansible-playbook /home/${AUSERNAME}/bastion-dnsmasq.yml" >> /home/${AUSERNAME}/openshift-install.sh
   echo "# setup custom dnsmasq domain" >> /home/${AUSERNAME}/openshift-install.sh
   echo "ansible-playbook /home/${AUSERNAME}/custom-dnsmasq-domain.yml" >> /home/${AUSERNAME}/openshift-install.sh
 fi
