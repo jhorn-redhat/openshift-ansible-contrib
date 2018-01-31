@@ -230,6 +230,7 @@ if [[ ${CUSTOMDNS} != "false" ]]; then
   NAMESERVER=$(echo ${CUSTOMDNS} | awk -F'=' '{print $2}')
 fi
 
+
 cat > /home/${AUSERNAME}/bastion-dnsmasq.yml <<EOF
 - hosts: localhost
   gather_facts: yes
@@ -1393,6 +1394,18 @@ cat <<EOF > /home/${AUSERNAME}/openshift-install.sh
 export ANSIBLE_HOST_KEY_CHECKING=False
 sleep 120
 ansible all --module-name=ping > ansible-preinstall-ping.out || true
+
+# setup dnsmasq on bastion
+ansible-playbook /home/${AUSERNAME}/bastion-dnsmasq.yml
+EOF
+
+if [[ ${CUSTOMDNS} != "false" ]];then
+  echo "# setup custom dnsmasq domain" >> /home/${AUSERNAME}/openshift-install.sh
+  echo "ansible-playbook /home/${AUSERNAME}/custom-dnsmasq-domain.yml" >> /home/${AUSERNAME}/openshift-install.sh
+fi
+
+cat <<EOF >> /home/${AUSERNAME}/openshift-install.sh
+
 ansible-playbook  /home/${AUSERNAME}/subscribe.yml
 ansible-playbook  /home/${AUSERNAME}/azure-config.yml
 echo "${RESOURCEGROUP} Bastion Host is starting ansible BYO" | mail -s "${RESOURCEGROUP} Bastion BYO Install" ${RHNUSERNAME} || true
@@ -1403,17 +1416,7 @@ wget http://master1:443/api > healtcheck.out
 ansible all -b -m command -a "nmcli con modify eth0 ipv4.dns-search $(domainname -d)"
 ansible all -b -m service -a "name=NetworkManager state=restarted"
 
-EOF
 
-if [[ ${CUSTOMDNS} != "false" ]];then
-  echo "# setup custom dnsmasq domain" >> /home/${AUSERNAME}/openshift-install.sh
-  echo "ansible-playbook /home/${AUSERNAME}/custom-dnsmasq-domain.yml" >> /home/${AUSERNAME}/openshift-install.sh
-fi
-
-cat <<EOF >> /home/${AUSERNAME}/openshift-install.sh
-
-# setup dnsmasq on bastion
-ansible-playbook /home/${AUSERNAME}/bastion-dnsmasq.yml
 
 ansible-playbook  /home/${AUSERNAME}/setup-azure-node.yml
 
