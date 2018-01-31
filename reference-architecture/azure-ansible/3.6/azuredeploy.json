@@ -366,11 +366,18 @@
 			"metadata": {
 				"description": "Enable OCP aggregated logging for ops"
 			}
+		},
+		"identityProviders": {
+		        "type": "string",
+			"defaultValue": "",
+			"metadata": {
+                                "description": "Configure OCP authentication providers."
+			}
 		}
 	},
 	"variables": {
-		"gituser": "jhorn-redhat",
-		"branch": "master",
+		"gituser": "clasohm",
+		"branch": "clasohm-openid-authentication",
 		"version": "3.6",
 		"baseTemplateUrl": "[concat('https://raw.githubusercontent.com/',variables('gituser'),'/openshift-ansible-contrib/',variables('branch'),'/reference-architecture/azure-ansible/',variables('version'),'/')]",
 		"baseVMachineTemplateUriInfranode": "[concat(variables('baseTemplateUrl'), 'infranode.json')]",
@@ -820,6 +827,9 @@
 					},
 					"autoInstall": {
 						"value": "[parameters('autoInstall')]"
+					},
+					"identityProviders": {
+					        "value": "[parameters('identityProviders')]"
 					}
 				}
 			}
