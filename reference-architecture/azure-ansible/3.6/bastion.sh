@@ -296,6 +296,12 @@ cat > /home/${AUSERNAME}/custom-dnsmasq-domain.yml <<EOF
     domain: ${DOMAIN}
     nameserver: ${NAMESERVER}
   tasks:
+    - name: ensure dnsmasq.d directory exists
+      file:
+        path: /etc/dnsmasq.d/
+        state: directory
+        mode: 0755
+
     - name: create custom dnsmasq domain
       copy:
         content: |
