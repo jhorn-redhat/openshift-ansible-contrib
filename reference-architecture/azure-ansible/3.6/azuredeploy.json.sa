@@ -61,7 +61,7 @@
 		},
 		"fqdn": {
 			"type": "string",
-      "defaultValue": "false"
+      "defaultValue": "false",
 			"metadata": {
 				"description": "Wildcard FQDN this resolves to application load balancer| example 'apps.example.com' defaults to 'false' which uses nip.io"
 			}
