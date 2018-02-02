@@ -22,3 +22,7 @@ masterkeydata: "false"
 mastercadata: "false"
 customdns: "false"
 autoinstall: "true"
+
+# base64-encoded version of
+# [{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
+identityproviders: "W3snbmFtZSc6ICdodHBhc3N3ZF9hdXRoJywgJ2xvZ2luJzogJ3RydWUnLCAnY2hhbGxlbmdlJzogJ3RydWUnLCAna2luZCc6ICdIVFBhc3N3ZFBhc3N3b3JkSWRlbnRpdHlQcm92aWRlcicsICdmaWxlbmFtZSc6ICcvZXRjL29yaWdpbi9tYXN0ZXIvaHRwYXNzd2QnfV0K"
