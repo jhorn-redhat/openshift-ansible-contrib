@@ -41,6 +41,7 @@ export ROUTERCERT=${array[35]}
 export ROUTERCA=${array[36]}
 export CUSTOMDNS=${array[37]}
 export AUTOINSTALL=${array[38]}
+export IDENTITYPROVIDERS=${array[39]}
 export FULLDOMAIN=${THEHOSTNAME#*.*}
 # for lab / dev + spec for prod remove spec
 export WILDCARDFQDN=${WILDCARDZONE}spec.${FULLDOMAIN}
@@ -525,7 +526,7 @@ azure_resource_group=${RESOURCEGROUP}
 rhn_pool_id=${RHNPOOLID}
 openshift_install_examples=true
 deployment_type=openshift-enterprise
-openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
+openshift_master_identity_providers=$(echo $IDENTITYPROVIDERS | base64 --d)
 openshift_master_manage_htpasswd=false
 
 os_sdn_network_plugin_name=${OPENSHIFTSDN}
