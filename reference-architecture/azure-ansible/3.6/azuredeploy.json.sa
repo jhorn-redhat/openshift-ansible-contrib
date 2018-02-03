@@ -6,21 +6,21 @@
 			"type": "string",
 			"defaultValue": "false",
 			"metadata": {
-				"description": "Router Key file (base64) | base64 | tr -d '\n' : defaults to 'false' which uses self-signed"
+				"description": "Router Key file (base64) | base64 | tr -d '\n' - defaults to false which uses self-signed"
 			}
 		},
 		"routerCertData": {
 			"type": "string",
 			"defaultValue": "false",
 			"metadata": {
-				"description": "Router Certificate file (base64) | base64 | tr -d '\n' : defaults to 'false' which uses self-signed"
+				"description": "Router Certificate file (base64) | base64 | tr -d '\n'  defaults to false which uses self-signed"
 			}
 		},
 		"routerCaData": {
 			"type": "string",
 			"defaultValue": "false",
 			"metadata": {
-				"description": "Router CA file (base64) | base64 | tr -d '\n' : defaults to 'false' which uses self-signed"
+				"description": "Router CA file (base64) | base64 | tr -d '\n' - defaults to false which uses self-signed"
 			}
 		},
 
@@ -28,56 +28,56 @@
 			"type": "string",
 			"defaultValue": "false",
 			"metadata": {
-				"description": "Master Key file (base64) | base64 | tr -d '\n' : defaults to 'false' which uses self-signed"
+				"description": "Master Key file (base64) | base64 | tr -d '\n' - defaults to false which uses self-signed"
 			}
 		},
 		"masterCertData": {
 			"type": "string",
 			"defaultValue": "false",
 			"metadata": {
-				"description": "Master Certificate file (base64) | base64 | tr -d '\n' : defaults to 'false' which uses self-signed"
+				"description": "Master Certificate file (base64) | base64 | tr -d '\n' - defaults to false which uses self-signed"
 			}
 		},
 		"masterCaData": {
 			"type": "string",
 			"defaultValue": "false",
 			"metadata": {
-				"description": "Router CA file (base64) | base64 | tr -d '\n' : defaults to 'false' which uses self-signed "
+				"description": "Router CA file (base64) | base64 | tr -d '\n' - defaults to false which uses self-signed "
 			}
 		},
 		"customDNS": {
 			"type": "string",
 			"defaultValue": "false",
 			"metadata": {
-				"description": "<domain.name>=<Nameserver IP to resolve Domain Name> for dnsmasq | format 'company.com=192.0.0.1' : defaults to 'false'"
+				"description": "<domain.name>=<Nameserver IP to resolve Domain Name> for dnsmasq | format company.com=192.0.0.1 - defaults to false"
 			}
 		},
 		"autoInstall": {
 			"type": "string",
 			"defaultValue": "true",
 			"metadata": {
-				"description": "Auto Install Openshift | values True|False Defaults to 'true'"
+				"description": "Auto Install Openshift | values True|False Defaults to true"
 			}
 		},
 		"fqdn": {
 			"type": "string",
       "defaultValue": "false",
 			"metadata": {
-				"description": "Wildcard FQDN this resolves to application load balancer| example 'apps.example.com' defaults to 'false' which uses nip.io"
+				"description": "Wildcard FQDN this resolves to application load balancer| example apps.example.com defaults to false which uses nip.io"
 			}
 		},
 		"WildcardZone": {
 			"type": "string",
 			"minLength": 1,
 			"metadata": {
-				"description": "Globally unique wildcard DNS subdomain for app access. example 'apps', if 'FQDN' option is left false this will prefix nip.io"
+				"description": "Globally unique wildcard DNS subdomain for app access. example apps, if FQDN option is left false this will prefix nip.io"
 			}
 		},
 		"masterUrl": {
 			"type": "string",
 			"defaultValue": "false",
 			"metadata": {
-				"description": "URL for web console | example 'console.example.com' : defaults to 'false' which uses '<resource-group-name>.<region>.cloudapp.azure.com'"
+				"description": "URL for web console | example console.example.com -  defaults to false which uses <resource-group-name>.<region>.cloudapp.azure.com"
 			}
 		},
 		"adminUsername": {
