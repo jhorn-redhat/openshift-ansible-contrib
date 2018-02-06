@@ -4,89 +4,106 @@
 	"parameters": {
 		"routerKeyData": {
 			"type": "string",
+			"defaultValue": "false",
 			"metadata": {
-				"description": "Router Key file"
+				"description": "Router Key file (base64) | base64 | tr -d '\n' - defaults to false which uses self-signed"
 			}
 		},
 		"routerCertData": {
 			"type": "string",
+			"defaultValue": "false",
 			"metadata": {
-				"description": "Router Certificate file"
+				"description": "Router Certificate file (base64) | base64 | tr -d '\n'  defaults to false which uses self-signed"
 			}
 		},
 		"routerCaData": {
 			"type": "string",
+			"defaultValue": "false",
 			"metadata": {
-				"description": "Router CA file"
+				"description": "Router CA file (base64) | base64 | tr -d '\n' - defaults to false which uses self-signed"
 			}
 		},
 
 		"masterKeyData": {
 			"type": "string",
+			"defaultValue": "false",
 			"metadata": {
-				"description": "Master Key file"
+				"description": "Master Key file (base64) | base64 | tr -d '\n' - defaults to false which uses self-signed"
 			}
 		},
 		"masterCertData": {
 			"type": "string",
+			"defaultValue": "false",
 			"metadata": {
-				"description": "Master Certificate file"
+				"description": "Master Certificate file (base64) | base64 | tr -d '\n' - defaults to false which uses self-signed"
 			}
 		},
 		"masterCaData": {
 			"type": "string",
+			"defaultValue": "false",
 			"metadata": {
-				"description": "Router CA file"
+				"description": "Router CA file (base64) | base64 | tr -d '\n' - defaults to false which uses self-signed "
 			}
 		},
 		"customDNS": {
 			"type": "string",
+			"defaultValue": "false",
 			"metadata": {
-				"description": "Custom Domain and Nameserver for dnsmasq"
+				"description": "<domain.name>=<Nameserver IP to resolve Domain Name> for dnsmasq | format company.com=192.0.0.1 - defaults to false"
 			}
 		},
 		"autoInstall": {
 			"type": "string",
+			"defaultValue": "true",
 			"metadata": {
-				"description": "AutoInstall Openshift"
+				"description": "Auto Install Openshift | values True|False Defaults to true"
 			}
 		},
 		"fqdn": {
 			"type": "string",
+      "defaultValue": "false",
 			"metadata": {
-				"description": "FQDN if not using nip.io"
-			}
-		},
-		"masterUrl": {
-			"type": "string",
-			"metadata": {
-				"description": "URL for web console"
-			}
-		},
-		"adminUsername": {
-			"type": "string",
-			"minLength": 1,
-			"metadata": {
-				"description": "User name for the Virtual Machine and OpenShift Webconsole."
-			}
-		},
-		"adminPassword": {
-			"type": "securestring",
-			"metadata": {
-				"description": "User password for the OpenShift Webconsole"
-			}
-		},
-		"sshKeyData": {
-			"type": "securestring",
-			"metadata": {
-				"description": "SSH RSA public key file as a string."
+				"description": "Wildcard FQDN this resolves to application load balancer| example apps.example.com defaults to false which uses nip.io"
 			}
 		},
 		"WildcardZone": {
 			"type": "string",
 			"minLength": 1,
 			"metadata": {
-				"description": "Globally unique wildcard DNS domain for app access."
+				"description": "Globally unique wildcard DNS subdomain for app access. example apps, if FQDN option is left false this will prefix nip.io"
+			}
+		},
+		"masterUrl": {
+			"type": "string",
+			"defaultValue": "false",
+			"metadata": {
+				"description": "URL for web console | example console.example.com -  defaults to false which uses <resource-group-name>.<region>.cloudapp.azure.com"
+			}
+		},
+		"adminUsername": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "User name for the Virtual Machines and OpenShift Webconsole."
+			}
+		},
+		"adminPassword": {
+			"type": "securestring",
+			"minLength": 1,
+			"metadata": {
+				"description": "User password for the Virtual Machines and OpenShift Webconsole"
+			}
+		},
+		"sshKeyData": {
+			"type": "securestring",
+			"metadata": {
+				"description": "Paste the SSH RSA public key file as a string for adminUsername, this will be injected to each Virtual Machine"
+			}
+		},
+		"sshPrivateData": {
+			"type": "securestring",
+			"metadata": {
+				"description": "Paste the SSH RSA private key file as a base64 string cat priv.key|base64|tr -d '\n'"
 			}
 		},
 		"numberOfNodes": {
@@ -95,7 +112,7 @@
 			"minValue": 3,
 			"maxValue": 30,
 			"metadata": {
-				"description": "Number of OpenShift Nodes to deploy (max 30)"
+				"description": "Number of OpenShift Applicaton Nodes to deploy (max 30)"
 			}
 		},
 		"image": {
@@ -317,12 +334,6 @@
 				"description": "Pool ID of the Red Hat subscritpion to use"
 			}
 		},
-		"sshPrivateData": {
-			"type": "securestring",
-			"metadata": {
-				"description": "SSH RSA private key file as a base64 string."
-			}
-		},
 		"aadClientId": {
 			"type": "string",
 			"metadata": {
@@ -366,7 +377,14 @@
 			"metadata": {
 				"description": "Enable OCP aggregated logging for ops"
 			}
-		}
+		},
+                "identityProviders": {
+                        "type": "string",
+                        "defaultValue": "",
+                        "metadata": {
+                                "description": "Configure OCP authentication providers."
+                        }
+                }
 	},
 	"variables": {
 		"gituser": "jhorn-redhat",
@@ -379,7 +397,8 @@
 		"location": "[resourceGroup().location]",
                 "osm_cluster_network_cidr": "10.29.0.0/16",
                 "openshift_portal_net": "10.28.0.0/16",
-                "virtualNetworkName": "lab-spec-westus-rg",
+                "groupName": "[replace(resourceGroup().name,'-', '')]",
+                "virtualNetworkName": "[variables('groupName')]",
                 "addressPrefix": "10.8.145.96/27",
                 "infranodesubnetName": "infranode",
                 "infranodesubnetPrefix": "10.8.145.112/29",
@@ -387,7 +406,6 @@
                 "nodesubnetPrefix": "10.8.145.120/29",
                 "mastersubnetName": "master",
                 "mastersubnetPrefix": "10.8.145.96/28",
-	        "groupName": "[replace(resourceGroup().name,'-', '')]",
 		"infranodeStorageName": "[concat('sainf', variables('groupName'))]",
 		"nodeStorageName": "[concat('sanod',variables('groupName'))]",
 		"masterStorageName": "[concat('samas', variables('groupName'))]",
@@ -820,7 +838,10 @@
 					},
 					"autoInstall": {
 						"value": "[parameters('autoInstall')]"
-					}
+					},
+                                        "identityProviders": {
+                                                "value": "[parameters('identityProviders')]"
+                                        }
 				}
 			}
 		},
