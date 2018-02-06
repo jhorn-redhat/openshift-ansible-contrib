@@ -387,7 +387,7 @@
                 "nodesubnetPrefix": "10.8.145.120/29",
                 "mastersubnetName": "master",
                 "mastersubnetPrefix": "10.8.145.96/28",
-	        "groupName": "[replace(resourceGroup().name,'-', '')]",
+	   "groupName": "[replace(resourceGroup().name,'-', '')]",
 		"infranodeStorageName": "[concat('sainf', variables('groupName'))]",
 		"nodeStorageName": "[concat('sanod',variables('groupName'))]",
 		"masterStorageName": "[concat('samas', variables('groupName'))]",
@@ -1194,7 +1194,7 @@
 			"properties": {
 				"publicIPAllocationMethod": "Static",
 				"dnsSettings": {
-					"domainNameLabel": "[concat(parameters('WildcardZone'), 'spec')]"
+					"domainNameLabel": "[parameters('WildcardZone')]"
 				}
 			}
 		},

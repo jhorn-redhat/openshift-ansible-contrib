@@ -92,22 +92,6 @@ ps -ef | grep bastion.sh > cmdline.out
 systemctl enable dnsmasq.service
 systemctl start dnsmasq.service
 
-# add users for octopus and bamboo
-useradd -md /home/bamboo -s /bin/bash bamboo
-useradd -md /home/octopus -s /bin/bash octopus
-mkdir -m 700 /home/bamboo/.ssh
-mkdir -m 700 /home/octopus/.ssh
-
-cat > /home/bamboo/.ssh/authorized_keys <<EOF
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDquVPz50NcZHo4NHFH4wKKJulZZOet0lx0XhvAhKScve+ujgyl564Sebz0BcJH2F+Kev4LjKHn2CsCmDISAxg+icgkjUb8B8QcFI78uK1byy1NaZMdQ6O5mXHaDyWv0LGQby29rxTBM5rQJWuyqJ9x7MLlnPd2FxGqTq8RRzENGJXNFA7TUtYDPFqWkVCrfswIjEfcPCr8/+aotKNnt8egPJwXs2uD1BZRhiKH0HmEyLfpszno1UKYV7HCfm4kX6KyUR2stQy7mrnmoMt8KtOc5MsUtuGew+qdep2bRinQY/P6xQo+8uryQUdtzSDVRC9rBc0ISYbncLUyy87g7qUj bamboo@bastion
-EOF
-
-cat > /home/octopus/.ssh/authorized_keys <<EOF
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD1mk5kxkiV9MVOzM+lwn6fWtUwqj7UWrRB7+UHwR9tMVCAeXZitAO0u+kKFwcC5RaHF3YBYbCJQU8vH/GOkbxrbWHMJDfZWG+brX5QCTRthtA/PWTdRsivjCEyb70Yq2aaw9G8ygYTJG0uGNaybvWqiEC6OkPROXxbiTz4Zs7uQhjpy1man5z3Oye0DhYBYN6ehUwfFPf0HlKYsGD4izl3XEwOVxFNlSSN3piVgeqf/NtZ7JXntvz2TVPhBaH/Kp5tbetfEvJLNDETFlFlSBDBRjablJ0Ivg63ka8w7GqV718WN0Q5xpxxGD9+sIHdaLQ5dlJoQjQMZEyGt4KKjp7x octopus@bastion
-EOF
-chmod 644 /home/bamboo/.ssh/authorized_keys
-chmod 644 /home/octopus/.ssh/authorized_keys
-
 ###
 echo "Resize Root FS"
 rootdev=`findmnt --target / -o SOURCE -n`
@@ -246,7 +230,7 @@ cat > /home/${AUSERNAME}/bastion-dnsmasq.yml <<EOF
       copy:
         content: |
           server=/{{ domain }}/{{ nameserver }}
-        dest: /etc/dnsmasq.d/honeywell-dnsmasq.conf
+        dest: "/etc/dnsmasq.d/{{ domain }}-dnsmasq.conf"
       notify:
         - restart dnsmasq
 
@@ -305,7 +289,7 @@ cat > /home/${AUSERNAME}/custom-dnsmasq-domain.yml <<EOF
       copy:
         content: |
           server=/{{ domain }}/{{ nameserver }}
-        dest: /etc/dnsmasq.d/honeywell-dnsmasq.conf
+        dest: "/etc/dnsmasq.d/{{ domain }}-dnsmasq.conf"
       notify:
         - restart dnsmasq
 
