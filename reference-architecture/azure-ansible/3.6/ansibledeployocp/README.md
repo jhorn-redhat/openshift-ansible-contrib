@@ -107,7 +107,8 @@ $ vim vars.yaml
 **NOTE:** The parameters detailed description can be found in [the official documentation](https://access.redhat.com/documentation/en-us/reference_architectures/2017/html-single/deploying_red_hat_openshift_container_platform_3_on_microsoft_azure/#provision_the_emphasis_role_strong_openshift_container_platform_emphasis_environment)
 
  * **sshkeydata**: id_rsa.pub content
- * **sshprivatedata**: id_rsa content in base64 without \n characters (`cat ~/.ssh/id_rsa | base64 | tr -d '\n'`)
+ * **sshprivatedata**: id_rsa content in base64 without \n characters 
+   * `cat ~/.ssh/id_rsa | base64 | tr -d '\n'`)
  * **adminusername**: User that will be created to login via ssh and as OCP cluster-admin
  * **adminpassword**: Password for the user created (in plain text)
  * **rhsmusernamepasswordoractivationkey**: This should be "**usernamepassword**" or "**activationkey**"
