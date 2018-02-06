@@ -1,0 +1,114 @@
+---
+# The parameters detailed description can be found in https://access.redhat.com/documentation/en-us/reference_architectures/2017/html-single/deploying_red_hat_openshift_container_platform_3_on_microsoft_azure/#provision_the_emphasis_role_strong_openshift_container_platform_emphasis_environment
+
+# id_rsa.pub content
+sshkeydata: ""
+
+# id_rsa content in base64 without \n characters
+# cat ~/.ssh/id_rsa | base64 | tr -d '\n'
+sshprivatedata: ""
+
+# User that will be created to login via ssh and as OCP cluster-admin
+adminusername: "admin"
+
+# Password in plain text
+adminpassword: ""
+
+# This should be "usernamepassword" or "activationkey"
+# If "usernamepassword", then the username and password should be specified
+# If "activationkey", then the activation key and organization id should be specified
+#rhsmusernamepasswordoractivationkey: "usernamepassword"
+rhsmusernamepasswordoractivationkey: "activationkey"
+
+# The RHN username where the instances will be registered
+rhnusername: ""
+# or rhnusername: "activationkey" if activation key method has been chosen
+
+# The RHN password where the instances will be registered in plain text
+rhnpassword: ""
+# or rhnpassword: "organizationid" if activation key method has been chosen
+
+# The subscription pool id the instances will use
+subscriptionpoolid: ""
+
+# The Azure resource name that will be created
+resourcegroupname: ""
+
+# Active Directory ID needed to be able to create, move and delete persistent volumes
+aadclientid: ""
+
+# The Active Directory Password to match the AAD Client ID
+aadclientsecret: ""
+
+# Subdomain for applications in the OpenShift cluster (required by the load balancer, but nip.io will be used). It is just the subdomain, not the full FQDN.
+wildcardzone: "dev"
+
+# Azure location:
+location: "westus"
+
+
+##################
+# OPTIONAL: Custom Domain defaults to nip.io
+##################
+#domain: "example.com"
+#nameserver: "10.0.0.1"
+#
+## OPTIONAL: Used instead of nip.io
+#fqdn: "dev.spec.{{ domain }}"
+#
+## OPTIONAL: URL
+## defautls to <resourcegroup>.<location>.cloudapp.azure.com
+#masterurl: "console.{{ fqdn }}"
+
+##################
+# Setup a domain / nameserver to route to if needed
+# this will be added to /etc/dnsmasq.d/{{ domain }}-dnsmasq.conf
+# server=/{{ domain }}/{{ nameserver }}
+# set to false by default
+# format: "domain nameserver"
+#customdns: "{{ domain }}={{ nameserver }}"
+
+##################
+# OPTIONAL: Deploy certs, defaults to self signed
+# cat ~/routercert|routerkey|routerca | base64 | tr -d '\n'
+##################
+routercertdata: ""
+
+routerkeydata: ""
+
+routercadata: ""
+
+# cat  wildcard.crt |base64 |tr -d '\n'
+mastercertdata: ""
+
+masterkeydata: ""
+
+
+mastercadata: ""
+
+# Optional (default values are set in playbooks/roles/azure-deploy/default/main.yaml)
+# The ARM template that will be deployed
+# NOTE: Make sure the following is updated in the azuredeploy.json that points to correct project.
+#       Any changes made to scripts/json files will not be picked up  f the project link below is using the default repository.
+# 359         "variables": {
+# 360                 "gituser": "openshift"
+# 361                 "branch": "master",
+# 362                 "version": "3.6",
+#templatelink: "https://raw.githubusercontent.com/jhorn-redhat/openshift-ansible-contrib/master/reference-architecture/azure-ansible/3.6/azuredeploy.json"
+# Optional (default values are set in playbooks/roles/azure-deploy/default/main.yaml)
+
+# From 3 to 30 nodes
+numberofnodes: 3
+
+# image: "rhel"
+mastervmsize: "Standard_E8s_v3"
+infranodesize: "Standard_E8s_v3"
+nodevmsize: "Standard_E8s_v3"
+# OpenShift SDN:
+# openshiftsdn: "redhat/openshift-ovs-multitenant"
+# Deploy metrics
+metrics: true
+# Deploy agregated logging
+logging: true
+# Deploy agregated logging for ops
+# opslogging: false
