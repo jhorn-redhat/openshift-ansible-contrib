@@ -12,5 +12,7 @@ epelpackages:
 pippackages:
   - "packaging"
   - "msrestazure"
-  - "azure==2.0.0rc5"
+  - "azure-cli"
+  - "packaging"
+  #- "azure==2.0.0rc5"
 # https://docs.ansible.com/ansible/guide_azure.html#requirements

@@ -24,6 +24,9 @@
   with_items: "{{ epelpackages }}"
   tags: epelpackages
 
+- name: upgrade pip
+  shell: pip install --upgrade pip
+
 - name: Install pip required packages
   pip:
     name: "{{ item }}"
