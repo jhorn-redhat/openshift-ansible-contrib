@@ -12,11 +12,12 @@
 #pip install --upgrade pip && pip install azure-cli
 
 function setup {
-tempFile="~/.az_account"
+tempFile="${HOME}/.az_account"
+echo ${tempFile}
 
 echo "az login -u ${az_name} -p \'${az_pass}\'"
 az login -u ${az_name} -p \'${az_pass}\'
-az account show > ${tempFIle}
+az account show > ${tempFile}
 
 subscription_id=$(awk -F'"' '/\"id\"\:/ {print $4}' ${tempFile})
 client_id=$(az ad app show --id "http://${sp_name}"|awk -F'"' '/appId/  {print $4}')
