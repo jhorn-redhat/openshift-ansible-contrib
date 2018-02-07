@@ -2,4 +2,3 @@ node_modules/*
 playbooks/*.retry
 **vars.yaml
 **vars.yml
-**

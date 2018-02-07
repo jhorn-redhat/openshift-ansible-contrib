@@ -1,4 +1,9 @@
 ---
+required_repos:
+  - rhel-7-server-rpms
+  - rhel-7-server-extras-rpms
+  - rhel-7-server-ansible-2.4-rpms
+
 packages:
   - ansible
   - python-devel
@@ -14,5 +19,7 @@ pippackages:
   - "msrestazure"
   - "azure-cli"
   - "packaging"
+
+rhsm_server: subscription.rhn.redhat.com
   #- "azure==2.0.0rc5"
 # https://docs.ansible.com/ansible/guide_azure.html#requirements

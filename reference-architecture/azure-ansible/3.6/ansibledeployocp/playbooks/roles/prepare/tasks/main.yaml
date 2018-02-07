@@ -1,4 +1,10 @@
 ---
+- name: RHSM Registration
+  import_tasks: rhsm_subcription.yaml
+
+- name: RHSM Registration
+  import_tasks: rhsm_repos.yaml
+
 - name: Add EPEL repository
   yum_repository:
     name: epel
