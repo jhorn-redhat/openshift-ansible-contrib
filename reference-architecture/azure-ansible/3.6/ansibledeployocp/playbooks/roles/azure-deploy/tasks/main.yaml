@@ -51,6 +51,8 @@
         value: "{{ logging }}"
       opslogging:
         value: "{{ opslogging }}"
+      customDNS:
+        value: "{{ customdns }}"
       autoInstall:
         value: "{{ autoinstall }}"
       routerCertData:

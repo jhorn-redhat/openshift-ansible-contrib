@@ -39,6 +39,12 @@
 				"description": "Router CA file"
 			}
 		},
+		"customDNS": {
+			"type": "string",
+			"metadata": {
+				"description": "Custom Domain and Nameserver for dnsmasq"
+			}
+		},
 		"autoInstall": {
 			"type": "string",
 			"metadata": {
@@ -364,7 +370,7 @@
 	},
 	"variables": {
 		"gituser": "jhorn-redhat",
-		"branch": "master",
+		"branch": "matt",
 		"version": "3.6",
 		"baseTemplateUrl": "[concat('https://raw.githubusercontent.com/',variables('gituser'),'/openshift-ansible-contrib/',variables('branch'),'/reference-architecture/azure-ansible/',variables('version'),'/')]",
 		"baseVMachineTemplateUriInfranode": "[concat(variables('baseTemplateUrl'), 'infranode.json')]",
@@ -381,7 +387,7 @@
                 "nodesubnetPrefix": "10.8.145.120/29",
                 "mastersubnetName": "master",
                 "mastersubnetPrefix": "10.8.145.96/28",
-	        "groupName": "[replace(resourceGroup().name,'-', '')]",
+	   "groupName": "[replace(resourceGroup().name,'-', '')]",
 		"infranodeStorageName": "[concat('sainf', variables('groupName'))]",
 		"nodeStorageName": "[concat('sanod',variables('groupName'))]",
 		"masterStorageName": "[concat('samas', variables('groupName'))]",
@@ -808,6 +814,9 @@
 					},
 					"masterUrl": {
 						"value": "[parameters('masterUrl')]"
+					},
+					"customDNS": {
+						"value": "[parameters('customDNS')]"
 					},
 					"autoInstall": {
 						"value": "[parameters('autoInstall')]"

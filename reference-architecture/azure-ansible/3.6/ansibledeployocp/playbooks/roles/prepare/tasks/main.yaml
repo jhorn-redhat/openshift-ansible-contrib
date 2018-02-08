@@ -1,4 +1,10 @@
 ---
+- name: RHSM Registration
+  import_tasks: rhsm_subcription.yaml
+
+- name: RHSM Registration
+  import_tasks: rhsm_repos.yaml
+
 - name: Add EPEL repository
   yum_repository:
     name: epel
@@ -23,6 +29,9 @@
     enablerepo: "epel"
   with_items: "{{ epelpackages }}"
   tags: epelpackages
+
+- name: upgrade pip
+  shell: pip install --upgrade pip
 
 - name: Install pip required packages
   pip:
