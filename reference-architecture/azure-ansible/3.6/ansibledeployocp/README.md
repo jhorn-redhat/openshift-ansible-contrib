@@ -1,38 +1,42 @@
+---
 
 
-# OpenShift Container Platform on Azure using Ansible deployment of ARM
+---
 
-This repository contains a few scripts and playbooks to deploy an OpenShift Container Platform on Azure using Ansible and ARM templates. This is a helper method on the [OpenShift Container Platform on Azure reference architecture document](https://access.redhat.com/documentation/en-us/reference_architectures/2017/html-single/deploying_red_hat_openshift_container_platform_3_on_microsoft_azure/).
-This ARM template is designed to deploy into an existing resourcegroup and vNet.  The vNet and subnets must be created before deployment and the ARM Template updated under 'variables' to match.  
-
-## Setup
-Before running the Ansible deploy for Azure, all the dependencies needed for Azure Python API must be installed. The [playbooks/prepare.yaml](playbooks/prepare.yaml) playbook can be used that will install the required packages in `localhost`:
-
-```bash
-ansible-playbook playbooks/prepare.yml
-```
-
-
-## Azure Credentials
-
-**NOTE:** A serviceprincipal creation is required, see [the OCP on Azure ref. arch. document](https://access.redhat.com/documentation/en-us/reference_architectures/2017/html-single/deploying_red_hat_openshift_container_platform_3_on_microsoft_azure/#azure_active_directory_credentials) and [Use Azure CLI to create a service principal to access resources](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-authenticate-service-principal-cli) for more information.
-
-Azure credentials needs to be stored in a file at `~/.azure/credentials` with the following format (do not use quotes or double quotes):
-
-```
-[default]
+<h1 id="openshift-container-platform-on-azure-using-ansible-deployment-of-arm">OpenShift Container Platform on Azure using Ansible deployment of ARM</h1>
+<p>This repository contains a few scripts and playbooks to deploy an OpenShift Container Platform on Azure using Ansible and ARM templates. This is a helper method on the <a href="https://access.redhat.com/documentation/en-us/reference_architectures/2017/html-single/deploying_red_hat_openshift_container_platform_3_on_microsoft_azure/">OpenShift Container Platform on Azure reference architecture document</a>.<br>
+This ARM template is designed to deploy into an existing resourcegroup and vNet.  The vNet and subnets must be created before deployment and the ARM Template updated under ‘variables’ to match.</p>
+<h2 id="setup">Setup</h2>
+<p>Before running the Ansible deploy for Azure, all the dependencies needed for Azure Python API must be installed. The <a href="playbooks/prepare.yaml">playbooks/prepare.yaml</a> playbook can be used that will install the required packages in <code>localhost</code>:</p>
+<pre class=" language-bash"><code class="prism  language-bash">ansible-playbook playbooks/prepare.yml
+</code></pre>
+<h2 id="azure-credentials">Azure Credentials</h2>
+<p><strong>Automated</strong>:</p>
+<p>A script is provided automating the manual steps below,  <code>createSP.sh</code> which requires 4 arguments to login. A Service Principal will be created with and information will be saved to ~/.azure/credentials.</p>
+<pre class=" language-bash"><code class="prism  language-bash">createSP.sh
+Usage: ./createSP.sh <span class="token punctuation">[</span>azure login<span class="token punctuation">]</span> <span class="token punctuation">[</span>azure password<span class="token punctuation">]</span> <span class="token punctuation">[</span>service principal name to create<span class="token punctuation">]</span> <span class="token punctuation">[</span>service principal password<span class="token punctuation">]</span>
+</code></pre>
+<p>Parameters:</p>
+<ul>
+<li><strong>Azure Login</strong>:  Login name for your Azure subscription</li>
+<li><strong>Azure Password</strong>: Login password for you Azure subscriptions</li>
+<li><strong>Service Principal Name</strong>: Name of the Service Principal you want created. ex. “openshift-sp”</li>
+<li><strong>Service Principal Password</strong>: Password for Service Principal being created</li>
+</ul>
+<p><strong>MANUAL</strong>:</p>
+<p><strong>NOTE:</strong> A serviceprincipal creation is required, see <a href="https://access.redhat.com/documentation/en-us/reference_architectures/2017/html-single/deploying_red_hat_openshift_container_platform_3_on_microsoft_azure/#azure_active_directory_credentials">the OCP on Azure ref. arch. document</a> and <a href="https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-authenticate-service-principal-cli">Use Azure CLI to create a service principal to access resources</a> for more information.</p>
+<p>Azure credentials needs to be stored in a file at <code>~/.azure/credentials</code> with the following format (do not use quotes or double quotes):</p>
+<pre><code>[default]
 subscription_id=00000000-0000-0000-0000-000000000000
 tenant=11111111-1111-1111-1111-111111111111
 client_id=33333333-3333-3333-3333-333333333
 secret=ServicePrincipalPassword
-```
-
-Where:
-
-* `subscription_id` and `tenant` parameters can be obtained from the azure cli:
-
-```
-sudo yum install -y nodejs
+</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>subscription_id</code> and <code>tenant</code> parameters can be obtained from the azure cli:</li>
+</ul>
+<pre><code>sudo yum install -y nodejs
 sudo npm install -g azure-cli
 azure login
 azure account show
@@ -48,12 +52,11 @@ data:    Has Access Token            : Yes
 data:    User name                   : youremail@yourcompany.com
 data:     
 info:    account show command OK
-```
-
-* `client_id` is the "Service Principal Name" parameter when you create the serviceprincipal:
-
-```
-$ azure ad sp create -n azureansible -p ServicePrincipalPassword
+</code></pre>
+<ul>
+<li><code>client_id</code> is the “Service Principal Name” parameter when you create the serviceprincipal:</li>
+</ul>
+<pre><code>$ azure ad sp create -n azureansible -p ServicePrincipalPassword
 
 info:    Executing command ad sp create
 + Creating application ansiblelab
@@ -64,56 +67,59 @@ data:    Service Principal Names:
 data:                             33333333-3333-3333-3333-333333333
 data:                             http://azureansible
 info:    ad sp create command OK
-```
+</code></pre>
+<ul>
+<li><code>secret</code> is the serviceprincipal password</li>
+</ul>
+<p><strong>NOTE:</strong> Azure credentials can be also exported as environment variables or used as ansible variables. See <a href="https://docs.ansible.com/ansible/guide_azure.html">Getting started with Azure</a> in the Ansible documentation for more information.</p>
+<p>**</p>
+<h1 id="arm-templates">ARM Templates</h1>
+<p>There are currently a choice of two templates currently being used, One template <strong>azuredeploy.json</strong>, requires a GIT Repo be publicly accessible for Azure to access the deployment files.   If security restrictions make this impossible another template is provided <strong><a href="http://azuredeploy.json.sa">azuredeploy.json.sa</a></strong>,  this deploys using a separate resourcegroup and storage account with a container to service as a repository for deployment files.  To help manage these files a script is included <strong><a href="http://manageSaFiles.sh">manageSaFiles.sh</a></strong>.</p>
+<p>Below are variables that need to be created in Azure and filled out according to your environment before deploying.  Currently it uses the resource group name as the vNet name minus any “-” characters.</p>
+<p><strong>NOTE</strong>: These variables need to match your existing environment.</p>
+<pre><code>"osm_cluster_network_cidr": "10.29.0.0/16",
+"openshift_portal_net": "10.28.0.0/16",
+"virtualNetworkName": "[variables('groupName')]",
+"addressPrefix": "10.8.145.96/27",
+"infranodesubnetName": "infranode",
+"infranodesubnetPrefix": "10.8.145.112/29",
+"nodesubnetName": "node",
+"nodesubnetPrefix": "10.8.145.120/29",
+"mastersubnetName": "master",
+"mastersubnetPrefix": "10.8.145.96/28",
+</code></pre>
+<p><strong>AZUREDEPLOY.JSON</strong><br>
+This template is designed to deploy within an existing resourcegroup and vNet.  Customization to the ARM template variables section needs to take place before deployment to match your environment.  The GIT repo specified in <code>azuredeploy.json</code> needs to be accessible for azure and public.</p>
+<pre><code>	"variables": {
+	"gituser": "jhorn-redhat",
+	"branch": "master", &lt; **UPDATE WITH BRANCH YOU'RE USING** &gt;
+	"version": "3.6",
+	"baseTemplateUrl": "[concat('https://raw.githubusercontent.com/',variables('gituser'),'/openshift-ansible-contrib/',variables('branch'),'/reference-architecture/azure-ansible/',variables('version'),'/')]",
+</code></pre>
+<p><strong><a href="http://AZUREDEPLOY.JSON.SA">AZUREDEPLOY.JSON.SA</a></strong><br>
+This template is designed to deploy from a storage account endpoint, a script <strong><a href="http://manageSaFiles.sh">manageSaFiles.sh</a></strong> can be used to upload and delete the deployment files. Please fill out the required variables to match your environment.</p>
+<pre><code>  ```"baseTemplateUrl":https://&lt;storageaccountname_goes_here&gt;.blob.core.windows.net/&lt;conatiner_name&gt;/",```
 
-* `secret` is the serviceprincipal password
-
-**NOTE:** Azure credentials can be also exported as environment variables or used as ansible variables. See [Getting started with Azure](https://docs.ansible.com/ansible/guide_azure.html) in the Ansible documentation for more information.
 
 ## Parameters required
-**AZUREDEPLOY.JSON**
-This template is designed to deploy within an existing resourcegroup and vNet.  Customization to the ARM template variables section will need to take place before deployment to match your environment.
-*templates*:
- ```azuredeploy.json``` This uses a public git repository. 
- 
-
-      "variables": {
-    "gituser": "jhorn-redhat",
-    "branch": "master", < **UPDATE WITH BRANCH YOU'RE USING** >
-    "version": "3.6",
-    "baseTemplateUrl": "[concat('https://raw.githubusercontent.com/',variables('gituser'),'/openshift-ansible-contrib/',variables('branch'),'/reference-architecture/azure-ansible/',variables('version'),'/')]",
-            "osm_cluster_network_cidr": "10.29.0.0/16",
-                "openshift_portal_net": "10.28.0.0/16",
-              "virtualNetworkName": "[variables('groupName')]",
-                "addressPrefix": "10.8.145.96/27",
-                "infranodesubnetName": "infranode",
-                "infranodesubnetPrefix": "10.8.145.112/29",
-                "nodesubnetName": "node",
-                "nodesubnetPrefix": "10.8.145.120/29",
-                "mastersubnetName": "master",
-                "mastersubnetPrefix": "10.8.145.96/28",
-
-```azuredeploy.json.sa``` This uses a storage account to deploy from, the script **manageSaFiles.sh** can be used to upload and delete the deployment files.
-  ```"baseTemplateUrl":https://<storageaccountname_goes_here>.blob.core.windows.net/<conatiner_name>/",```
 
 **VARS.YAML**
 The ansible playbook needs some parameters to be specified. There is a [vars.yaml example file](vars.yaml.example) included in this repository that should be customized with your environment data.
 
-```
-$ cp vars.yaml.example vars.yaml
-$ vim vars.yaml
-```
-
+</code></pre>
+<p>$ cp vars.yaml.example vars.yaml<br>
+$ vim vars.yaml</p>
+<pre><code>
 **NOTE:** The parameters detailed description can be found in [the official documentation](https://access.redhat.com/documentation/en-us/reference_architectures/2017/html-single/deploying_red_hat_openshift_container_platform_3_on_microsoft_azure/#provision_the_emphasis_role_strong_openshift_container_platform_emphasis_environment)
 
  * **sshkeydata**: id_rsa.pub content
  * **sshprivatedata**: id_rsa content in base64 without \n characters 
-   * `cat ~/.ssh/id_rsa | base64 | tr -d '\n'`)
+	 * `cat ~/.ssh/id_rsa | base64 | tr -d '\n'`)
  * **adminusername**: User that will be created to login via ssh and as OCP cluster-admin
  * **adminpassword**: Password for the user created (in plain text)
  * **rhsmusernamepasswordoractivationkey**: This should be "**usernamepassword**" or "**activationkey**"
-   * If "**usernamepassword**", then the username and password should be specified
-   * If "**activationkey**", then the activation key and organization id should be specified
+	 * If "**usernamepassword**", then the username and password should be specified
+	 * If "**activationkey**", then the activation key and organization id should be specified
  * **rhnusername**: The RHN username where the instances will be registered
  * **rhnusername**: "organizationid" if  activation key method has been chosen
  * **rhnpassword**: The RHN password where the instances will be registered in plain text
@@ -123,8 +129,9 @@ $ vim vars.yaml
  * **aadclientid**: Active Directory ID needed to be able to create, move and delete persistent volumes
  * **aadclientsecret**: The Active Directory Password to match the AAD Client ID
  * **wildcardzone**: Subdomain for applications in the OpenShift cluster 
-  * just zone name not FQDN, ex. "dev"
-  * FQDN of the application load balancer is set using this variable. <wildcard>.<location>.clouapps.azure.com. This must be unique in azures region.
+	* just zone name not FQDN, ex. "**dev**"
+	* **FQDN** of the application load balancer is set using this variable. 
+	*  ex. " {{ wildcard }}.{{ location }}.clouapps.azure.com ". This must be unique in azures region.
 
 **OPTIONAL:**  
 These variables if unset default to using nip.io 
@@ -140,13 +147,13 @@ These Variables deploy named certificates when using the domains above, "FQDN" (
 
  - Comment out if not using,  Defaults to self-signed.
  - Paste the output for each file into the respective variables if using named certs.
- `cat <certfile> |base64 | tr -d '\n`
-   - **routercertdata**: "" 
-   - **routerkeydata**: "" 
-   - **routercadata**: "" 
-   - **mastercertdata**: ""
-   - **masterkeydata**: ""
-   - **mastercadata**: ""
+	`cat &lt;certfile&gt; |base64 | tr -d '\n`
+	 - **routercertdata**: "" 
+	 - **routerkeydata**: "" 
+	 - **routercadata**: "" 
+	 - **mastercertdata**: ""
+	 - **masterkeydata**: ""
+	 - **mastercadata**: ""
 - **numberofnodes**: From 3 to 30 nodes
  - **image**: The operating system image that will be used to create the instances, defaults to "**rhel**"
  - **mastervmsize**: Master nodes VM size, defaults to "**Standard_DS4_v2**"
@@ -162,35 +169,27 @@ These Variables deploy named certificates when using the domains above, "FQDN" (
 
 ```bash
 ansible-playbook -e @vars.yaml playbooks/deploy.yml
-```
+</code></pre>
+<p><strong>NOTE:</strong> Ansible version should be &gt; 2.1 as the Azure module was included in that version</p>
+<h3 id="sample-output">Sample Output</h3>
+<pre class=" language-bash"><code class="prism  language-bash">$ scripts/run.sh  
 
-**NOTE:** Ansible version should be > 2.1 as the Azure module was included in that version
+PLAY <span class="token punctuation">[</span>localhost<span class="token punctuation">]</span> ****************************************************************************************************************************************
 
-### Sample Output
+TASK <span class="token punctuation">[</span>Destroy Azure Deploy<span class="token punctuation">]</span> *****************************************************************************************************************************
+changed: <span class="token punctuation">[</span>localhost<span class="token punctuation">]</span>
 
-```bash
-$ scripts/run.sh  
+TASK <span class="token punctuation">[</span>Destroy Azure Deploy<span class="token punctuation">]</span> *****************************************************************************************************************************
+ok: <span class="token punctuation">[</span>localhost<span class="token punctuation">]</span>
 
-PLAY [localhost] ****************************************************************************************************************************************
-
-TASK [Destroy Azure Deploy] *****************************************************************************************************************************
-changed: [localhost]
-
-TASK [Destroy Azure Deploy] *****************************************************************************************************************************
-ok: [localhost]
-
-TASK [Create Azure Deploy] ******************************************************************************************************************************
-changed: [localhost]
+TASK <span class="token punctuation">[</span>Create Azure Deploy<span class="token punctuation">]</span> ******************************************************************************************************************************
+changed: <span class="token punctuation">[</span>localhost<span class="token punctuation">]</span>
 
 PLAY RECAP **********************************************************************************************************************************************
-localhost                  : ok=3    changed=2    unreachable=0    failed=0    
-```
-
-
-## Removing
-**NOTE**:  when removing or re-deploying the resource group will not be deleted,  everything except the vNet and routing table are destroyed.  
-```bash
-ansible-playbook -e @vars.yaml playbooks/destroy.yaml
-```
-
+localhost                  <span class="token keyword">:</span> ok<span class="token operator">=</span>3    changed<span class="token operator">=</span>2    unreachable<span class="token operator">=</span>0    failed<span class="token operator">=</span>0    
+</code></pre>
+<h2 id="removing">Removing</h2>
+<p><strong>NOTE</strong>:  when removing or re-deploying the resource group will not be deleted,  everything except the vNet and routing table are destroyed.</p>
+<pre class=" language-bash"><code class="prism  language-bash">ansible-playbook -e @vars.yaml playbooks/destroy.yaml
+</code></pre>
 
