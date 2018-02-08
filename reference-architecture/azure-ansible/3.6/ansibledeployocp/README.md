@@ -6,11 +6,20 @@
 <h1 id="openshift-container-platform-on-azure-using-ansible-deployment-of-arm">OpenShift Container Platform on Azure using Ansible deployment of ARM</h1>
 <p>This repository contains a few scripts and playbooks to deploy an OpenShift Container Platform on Azure using Ansible and ARM templates. This is a helper method on the <a href="https://access.redhat.com/documentation/en-us/reference_architectures/2017/html-single/deploying_red_hat_openshift_container_platform_3_on_microsoft_azure/">OpenShift Container Platform on Azure reference architecture document</a>.<br>
 This ARM template is designed to deploy into an existing resourcegroup and vNet.  The vNet and subnets must be created before deployment and the ARM Template updated under ‘variables’ to match.</p>
-<h2 id="setup">Setup</h2>
-<p>Before running the Ansible deploy for Azure, all the dependencies needed for Azure Python API must be installed. The <a href="playbooks/prepare.yaml">playbooks/prepare.yaml</a> playbook can be used that will install the required packages in <code>localhost</code>:</p>
+<h1 id="setup">Setup</h1>
+<ol>
+<li>Install Ansible 2.3+</li>
+<li>Prepare deployment server</li>
+<li>Create service principal credentials</li>
+<li>Make a copy of vars.yaml.example -&gt; vars.yaml and edit</li>
+<li>Deploy</li>
+</ol>
+<p><strong>Prepare</strong>:<br>
+Before running the Ansible deploy for Azure, all the dependencies needed for Azure Python API and must be installed. This document uses azure-cli 2.0.26. The <a href="playbooks/prepare.yaml">playbooks/prepare.yaml</a> playbook can be used that to automate this on  <code>localhost</code>.</p>
 <pre class=" language-bash"><code class="prism  language-bash">ansible-playbook playbooks/prepare.yml
 </code></pre>
 <h2 id="azure-credentials">Azure Credentials</h2>
+<p>A</p>
 <p><strong>Automated</strong>:</p>
 <p>A script is provided automating the manual steps below,  <code>createSP.sh</code> which requires 4 arguments to login. A Service Principal will be created with and information will be saved to ~/.azure/credentials.</p>
 <pre class=" language-bash"><code class="prism  language-bash">createSP.sh
@@ -23,7 +32,7 @@ Usage: ./createSP.sh <span class="token punctuation">[</span>azure login<span cl
 <li><strong>Service Principal Name</strong>: Name of the Service Principal you want created. ex. “openshift-sp”</li>
 <li><strong>Service Principal Password</strong>: Password for Service Principal being created</li>
 </ul>
-<p><strong>MANUAL</strong>:</p>
+<p><strong>Manual</strong>:</p>
 <p><strong>NOTE:</strong> A serviceprincipal creation is required, see <a href="https://access.redhat.com/documentation/en-us/reference_architectures/2017/html-single/deploying_red_hat_openshift_container_platform_3_on_microsoft_azure/#azure_active_directory_credentials">the OCP on Azure ref. arch. document</a> and <a href="https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-authenticate-service-principal-cli">Use Azure CLI to create a service principal to access resources</a> for more information.</p>
 <p>Azure credentials needs to be stored in a file at <code>~/.azure/credentials</code> with the following format (do not use quotes or double quotes):</p>
 <pre><code>[default]
