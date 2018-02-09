@@ -30,8 +30,7 @@ This ARM template is designed to deploy into an existing resourcegroup and vNet.
 <pre class=" language-bash"><code class="prism  language-bash">ansible-playbook playbooks/prepare.yml
 </code></pre>
 <h2 id="service-principal">Service Principal</h2>
-<p>There are two ways to<br>
-<strong>Automated Process</strong>:</p>
+<p><strong>Automated Process</strong>:</p>
 <p>A script is provided automating the manual steps below,  <code>createSP.sh</code> which requires 4 arguments.  A Service Principal will be created with role contributor and information will be saved to ~/.azure/credentials.</p>
 <pre class=" language-bash"><code class="prism  language-bash">createSP.sh
 Usage: ./createSP.sh <span class="token punctuation">[</span>azure login<span class="token punctuation">]</span> <span class="token punctuation">[</span>azure password<span class="token punctuation">]</span> <span class="token punctuation">[</span>service principal name to create<span class="token punctuation">]</span> <span class="token punctuation">[</span>service principal password<span class="token punctuation">]</span>
