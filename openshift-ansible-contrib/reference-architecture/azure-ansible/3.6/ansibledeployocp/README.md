@@ -8,10 +8,9 @@
 This ARM template is designed to deploy into an existing resourcegroup and vNet.  The vNet and subnets must be created before deployment and the ARM Template updated under ‘variables’ to match.</p>
 <h1 id="setup">Setup</h1>
 <ol>
-<li>Azure subscription with required quota limits as described in  <a href="https://access.redhat.com/documentation/en-us/reference_architectures/2017/html-single/deploying_red_hat_openshift_container_platform_3.6_on_microsoft_azure/index#parameters_required">OpenShift Container Platform on Azure reference architecture document</a></li>
 <li>Create required Azure resources
 <ul>
-<li><strong>Resource Group</strong>:  Described here</li>
+<li><strong>Resource Group</strong>:  Contains only vNet/Subnet(s), nothing else</li>
 <li><strong>vNet</strong>:  Assign address space<br>
 - <strong>subnets</strong>: <strong>Master</strong>, <strong>Infra</strong> and <strong>Node</strong> subnets must be created and assigned CIDRs</li>
 </ul>
@@ -22,14 +21,14 @@ This ARM template is designed to deploy into an existing resourcegroup and vNet.
 <li>Make a copy of vars.yaml.example -&gt; vars.yaml and edit</li>
 <li>Deploy</li>
 </ol>
-<h2 id="prepare">Prepare:</h2>
-<p>Before running the Ansible deploy for Azure, all the dependencies needed for Azure Python API must be installed. This document uses azure-cli 2.0.26. The <a href="reference-architecture/azure-ansible/3.6/ansibledeployocp/playbooks/prepare.yaml">reference-architecture/azure-ansible/3.6/ansibledeployocp/playbooks/prepare.yaml</a> playbook can be used that to automate this on  <code>localhost</code> by running the command below.</p>
+<p><strong>Prepare</strong>:<br>
+Before running the Ansible deploy for Azure, all the dependencies needed for Azure Python API must be installed. This document uses azure-cli 2.0.26. The <a href="reference-architecture/azure-ansible/3.6/ansibledeployocp/playbooks/prepare.yaml">reference-architecture/azure-ansible/3.6/ansibledeployocp/playbooks/prepare.yaml</a> playbook can be used that to automate this on  <code>localhost</code> by running the command below.</p>
 <pre class=" language-bash"><code class="prism  language-bash">ansible-playbook playbooks/prepare.yml
 </code></pre>
 <h2 id="azure-credentials">Azure Credentials</h2>
 <p>There are two ways to<br>
 <strong>Automated Process</strong>:</p>
-<p>A script is provided automating the manual steps below,  <code>createSP.sh</code> which requires 4 arguments.  A Service Principal will be created with role contributor and information will be saved to ~/.azure/credentials.</p>
+<p>A script is provided automating the manual steps below,  <code>createSP.sh</code> which requires 4 arguments to login. A Service Principal will be created with and information will be saved to ~/.azure/credentials.</p>
 <pre class=" language-bash"><code class="prism  language-bash">createSP.sh
 Usage: ./createSP.sh <span class="token punctuation">[</span>azure login<span class="token punctuation">]</span> <span class="token punctuation">[</span>azure password<span class="token punctuation">]</span> <span class="token punctuation">[</span>service principal name to create<span class="token punctuation">]</span> <span class="token punctuation">[</span>service principal password<span class="token punctuation">]</span>
 </code></pre>
