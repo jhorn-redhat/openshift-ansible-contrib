@@ -42,26 +42,18 @@ aadclientid: ""
 aadclientsecret: ""
 
 # Subdomain for applications in the OpenShift cluster (required by the load balancer, but nip.io will be used). It is just the subdomain, not the full FQDN.
-<<<<<<< HEAD:reference-architecture/azure-ansible/3.6/ansibledeployocp/vars.yml.example
-wildcardzone: "dev"
-=======
 # This value is used to set the FQDN of the application load balancer so needs to be unique within AZURE
 # Azure FQDN for AppLB: ex. <wildcardzone>.<location>.clouapp.azure.com needs to be unique in azure location.
 wildcardzone: "apps"
->>>>>>> dev:reference-architecture/azure-ansible/3.6/ansibledeployocp/vars.yaml.example
 
 # Azure location:
 location: "westus"
 
-<<<<<<< HEAD:reference-architecture/azure-ansible/3.6/ansibledeployocp/vars.yml.example
 
-=======
->>>>>>> dev:reference-architecture/azure-ansible/3.6/ansibledeployocp/vars.yaml.example
 ##################
 # OPTIONAL: Custom Domain defaults to nip.io
 ##################
 #domain: "example.com"
-<<<<<<< HEAD:reference-architecture/azure-ansible/3.6/ansibledeployocp/vars.yml.example
 #nameserver: "10.0.0.1"
 #
 ## OPTIONAL: Used instead of nip.io
@@ -69,7 +61,6 @@ location: "westus"
 #
 ## OPTIONAL: URL
 ## defautls to <resourcegroup>.<location>.cloudapp.azure.com
-=======
 #nameserver: "10.8.8.8"
 
 ##################
@@ -81,7 +72,6 @@ location: "westus"
 # OPTIONAL: URL
 # Needs to resolve to the master LoadBalancer
 # Defaults: to resourcegroupname.location.cloudapp.azure.com
->>>>>>> dev:reference-architecture/azure-ansible/3.6/ansibledeployocp/vars.yaml.example
 #masterurl: "console.{{ fqdn }}"
 
 ##################
@@ -90,28 +80,7 @@ location: "westus"
 # server=/{{ domain }}/{{ nameserver }}
 # set to false by default
 # format: "domain nameserver"
-<<<<<<< HEAD:reference-architecture/azure-ansible/3.6/ansibledeployocp/vars.yml.example
 #customdns: "{{ domain }}={{ nameserver }}"
-
-##################
-# OPTIONAL: Deploy certs, defaults to self signed
-# cat ~/routercert|routerkey|routerca | base64 | tr -d '\n'
-##################
-routercertdata: ""
-
-routerkeydata: ""
-
-routercadata: ""
-
-# cat  wildcard.crt |base64 |tr -d '\n'
-mastercertdata: ""
-
-masterkeydata: ""
-
-
-mastercadata: ""
-=======
-customdns: "{{ domain }}={{ nameserver }}"
 
 
 ################
@@ -125,20 +94,14 @@ customdns: "{{ domain }}={{ nameserver }}"
 # Defaults to selfsigned when commented out
 ##################
 #routercertdata: ""
-
 #routerkeydata: ""
-
 #routercadata: ""
 
 # Master API 
 # cat ~/mastercert|masterkey|masterca | base64 | tr -d '\n'
 #mastercertdata: ""
-
 #masterkeydata: ""
-
-
 #mastercadata: ""
->>>>>>> dev:reference-architecture/azure-ansible/3.6/ansibledeployocp/vars.yaml.example
 
 # Optional (default values are set in playbooks/roles/azure-deploy/default/main.yaml)
 # The ARM template that will be deployed
@@ -155,15 +118,9 @@ customdns: "{{ domain }}={{ nameserver }}"
 numberofnodes: 3
 
 # image: "rhel"
-<<<<<<< HEAD:reference-architecture/azure-ansible/3.6/ansibledeployocp/vars.yml.example
-mastervmsize: "Standard_E8s_v3"
-infranodesize: "Standard_E8s_v3"
-nodevmsize: "Standard_E8s_v3"
-=======
 mastervmsize: "Standard_DS4_v2"
 infranodesize: "Standard_DS3_v2"
 nodevmsize: "Standard_DS3_v2"
->>>>>>> dev:reference-architecture/azure-ansible/3.6/ansibledeployocp/vars.yaml.example
 # OpenShift SDN:
 # openshiftsdn: "redhat/openshift-ovs-multitenant"
 # Deploy metrics
