@@ -16,7 +16,7 @@ epelpackages:
 pippackages:
   - "packaging"
   - "msrestazure"
-  - "azure-cli"
+  - "azure-cli==2.0.26"
 
 rhsm_server: subscription.rhn.redhat.com
   #- "azure==2.0.0rc5"
