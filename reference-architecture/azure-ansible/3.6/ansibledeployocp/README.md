@@ -24,7 +24,7 @@ This ARM template is designed to deploy into an existing resourcegroup and vNet.
 </ol>
 <h1 id="prepare">Prepare</h1>
 <p>Preparing the deployment server.</p>
-<p>Fill out required variable file, <a href="#params">required variables</a> before continuing.</p>
+<p>Fill out required variable file, <a href="#parameters-required">required variables</a> before continuing.</p>
 <h2 id="ansible"><strong>Ansible</strong>:</h2>
 <p>Ansible 2.3+ needs to be installed before executing the prepare playbook below.</p>
 <p>Before running the Ansible deploy for Azure, all the dependencies needed for Azure Python API must be installed. This playbook installs azure-cli 2.0.26. The <a href="reference-architecture/azure-ansible/3.6/ansibledeployocp/playbooks/prepare.yaml">reference-architecture/azure-ansible/3.6/ansibledeployocp/playbooks/prepare.yaml</a> playbook automates preparations on  <code>localhost</code> by running the command below.   You will need to</p>
@@ -120,7 +120,7 @@ Customization to the ARM template variables section needs to take place before d
 <p><strong><a href="http://AZUREDEPLOY.JSON.SA">AZUREDEPLOY.JSON.SA</a></strong><br>
 This template is designed to deploy from a storage account endpoint, a script <strong><a href="http://manageSaFiles.sh">manageSaFiles.sh</a></strong> can be used to upload and delete the deployment files. Please fill out the required variables to match your environment.<br>
 <code>"baseTemplateUrl":https://&lt;storageaccountname_goes_here&gt;.blob.core.windows.net/&lt;conatiner_name_goes_here&gt;/",</code></p>
-<h2 id="parameters-required"><a href="#params">Parameters required</a></h2>
+<h2 id="parameters-required">Parameters required</h2>
 <p><strong>VARS.YAML</strong><br>
 The ansible playbook needs some parameters to be specified. There is a <a href="vars.yaml.example">vars.yaml example file</a> included in this repository that should be customized with your environment data.</p>
 <pre><code>$ cp vars.yaml.example vars.yaml
