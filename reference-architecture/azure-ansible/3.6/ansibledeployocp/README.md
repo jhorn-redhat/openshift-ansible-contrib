@@ -91,25 +91,25 @@ info:    ad sp create command OK
 <li><code>secret</code> is the serviceprincipal password</li>
 </ul>
 <p><strong>NOTE:</strong> Azure credentials can be also exported as environment variables or used as ansible variables. See <a href="https://docs.ansible.com/ansible/guide_azure.html">Getting started with Azure</a> in the Ansible documentation for more information.</p>
-<h1 id="arm-templates">ARM Templates</h1>
-<p>There are currently a choice of two templates currently being used, One template <strong>azuredeploy.json</strong>, requires a GIT Repo be publicly accessible for Azure to access the deployment files.   If security restrictions make this impossible another template is provided <strong><a href="http://azuredeploy.json.sa">azuredeploy.json.sa</a></strong>,  this deploys using a separate resourcegroup and storage account with a container to service as a repository for deployment files.  To help manage these files a script is included <strong><a href="http://manageSaFiles.sh">manageSaFiles.sh</a></strong>.</p>
-<p>Below are variables that need to be created in Azure and filled out according to your environment before deploying.  Currently it uses the resource group name as the vNet name minus any “-” characters.</p>
+<h1 id="deployment">Deployment</h1>
+<h2 id="arm-templates">ARM Templates</h2>
+<p>A choice of two templates are provided, One template <strong>azuredeploy.json</strong>, requires a GIT Repo be publicly accessible for Azure to access the deployment files.   If security restrictions make this impossible another template is provided <strong><a href="http://azuredeploy.json.sa">azuredeploy.json.sa</a></strong>,  this deploys using a separate resourcegroup, storage account and container to service as a repository for deployment files.  To help manage these files a script is included <strong><a href="http://manageSaFiles.sh">manageSaFiles.sh</a></strong>.  Each template is designed to deploy within an existing resourcegroup and vNet.</p>
+<p>Below are variables that need to be updated for the ARM template(s), they must match  your environment before deploying.</p>
 <p><strong>Common Variables:</strong><br>
-<strong>NOTE</strong>: These variables need to match your existing environment. By default <code>virtualNetworkName</code> expects</p>
+<strong>NOTE</strong>: These variables need to match your existing environment.</p>
 <pre><code>"osm_cluster_network_cidr": "10.29.0.0/16",
 "openshift_portal_net": "10.28.0.0/16",
-"groupName": "[replace(resourceGroup().name,'-', '')]",
-"virtualNetworkName": "[variables('groupName')]",
-"addressPrefix": "10.8.145.96/27",
+"virtualNetworkName": "changeme",
+"addressPrefix": "x.x.x.x/27",
 "infranodesubnetName": "infranode",
-"infranodesubnetPrefix": "10.8.145.112/29",
+"infranodesubnetPrefix": "x.x.x.x/29",
 "nodesubnetName": "node",
-"nodesubnetPrefix": "10.8.145.120/29",
+"nodesubnetPrefix": "x.x.x.x/29",
 "mastersubnetName": "master",
-"mastersubnetPrefix": "10.8.145.96/28",
+"mastersubnetPrefix": "x.x.x.x/28",
 </code></pre>
 <p><strong>AZUREDEPLOY.JSON</strong><br>
-This template is designed to deploy within an existing resourcegroup and vNet.  Customization to the ARM template variables section needs to take place before deployment to match your environment.  The GIT repo specified in <code>azuredeploy.json</code> needs to be accessible for azure and public.</p>
+Customization to the ARM template variables section needs to take place before deployment to match your environment.  The GIT repo specified in <code>azuredeploy.json</code> needs to be accessible for azure,  i.e. public.</p>
 <pre><code>	"variables": {
 	"gituser": "jhorn-redhat",
 	"branch": "master", &lt; **UPDATE WITH BRANCH YOU'RE USING** &gt;
@@ -118,7 +118,7 @@ This template is designed to deploy within an existing resourcegroup and vNet.  
 </code></pre>
 <p><strong><a href="http://AZUREDEPLOY.JSON.SA">AZUREDEPLOY.JSON.SA</a></strong><br>
 This template is designed to deploy from a storage account endpoint, a script <strong><a href="http://manageSaFiles.sh">manageSaFiles.sh</a></strong> can be used to upload and delete the deployment files. Please fill out the required variables to match your environment.<br>
-<code>"baseTemplateUrl":https://&lt;storageaccountname_goes_here&gt;.blob.core.windows.net/&lt;conatiner_name&gt;/",</code></p>
+<code>"baseTemplateUrl":https://&lt;storageaccountname_goes_here&gt;.blob.core.windows.net/&lt;conatiner_name_goes_here&gt;/",</code></p>
 <h2 id="parameters-required">Parameters required</h2>
 <p><strong>VARS.YAML</strong><br>
 The ansible playbook needs some parameters to be specified. There is a <a href="vars.yaml.example">vars.yaml example file</a> included in this repository that should be customized with your environment data.</p>
