@@ -22,13 +22,14 @@ This ARM template is designed to deploy into an existing resourcegroup and vNet.
 <li>Make a copy of vars.yaml.example -&gt; vars.yaml and edit</li>
 <li>Deploy</li>
 </ol>
-<h2 id="prepare">Prepare:</h2>
-<p><strong>Ansible</strong>:<br>
-Ansible 2.3+ needs to be installed before executing the prepare playbook below.</p>
+<h1 id="prepare">Prepare</h1>
+<p>Preparing the deployment server.</p>
+<h2 id="ansible"><strong>Ansible</strong>:</h2>
+<p>Ansible 2.3+ needs to be installed before executing the prepare playbook below.</p>
 <p>Before running the Ansible deploy for Azure, all the dependencies needed for Azure Python API must be installed. This playbook installs azure-cli 2.0.26. The <a href="reference-architecture/azure-ansible/3.6/ansibledeployocp/playbooks/prepare.yaml">reference-architecture/azure-ansible/3.6/ansibledeployocp/playbooks/prepare.yaml</a> playbook automates preparations on  <code>localhost</code> by running the command below.</p>
 <pre class=" language-bash"><code class="prism  language-bash">ansible-playbook playbooks/prepare.yml
 </code></pre>
-<h2 id="azure-credentials">Azure Credentials</h2>
+<h2 id="service-principal">Service Principal</h2>
 <p>There are two ways to<br>
 <strong>Automated Process</strong>:</p>
 <p>A script is provided automating the manual steps below,  <code>createSP.sh</code> which requires 4 arguments.  A Service Principal will be created with role contributor and information will be saved to ~/.azure/credentials.</p>
