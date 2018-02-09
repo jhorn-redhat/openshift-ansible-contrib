@@ -10,9 +10,9 @@ This ARM template is designed to deploy into an existing resourcegroup and vNet.
 <ol>
 <li>Create required Azure resources
 <ul>
-<li><strong>Resource Group</strong>: ( This needs to be ONLY for Openshift Resources,  make sure the deployment server we are setting up now is not included )</li>
-<li><strong>vNet</strong></li>
-<li></li>
+<li><strong>Resource Group</strong>:  Contains only vNet/Subnet(s), nothing else</li>
+<li><strong>vNet</strong>:  Assign address space<br>
+- <strong>subnets</strong>: <strong>Master</strong>, <strong>Infra</strong> and <strong>Node</strong> subnets must be created and assigned CIDRs</li>
 </ul>
 </li>
 <li>Install Ansible 2.3+</li>
