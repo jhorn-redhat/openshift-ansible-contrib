@@ -131,7 +131,7 @@ $ vim vars.yaml
 <li><strong>sshkeydata</strong>: id_rsa.pub content</li>
 <li><strong>sshprivatedata</strong>: id_rsa content in base64 without \n characters
 <ul>
-<li><code>cat ~/.ssh/id_rsa | base64 | tr -d '\n'</code>)</li>
+<li><code>cat ~/.ssh/id_rsa | base64 | tr -d '\n'</code></li>
 </ul>
 </li>
 <li><strong>adminusername</strong>: User that will be created to login via ssh and as OCP cluster-admin</li>
