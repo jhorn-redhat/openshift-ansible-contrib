@@ -23,6 +23,8 @@ This ARM template is designed to deploy into an existing resourcegroup and vNet.
 <li>Deploy</li>
 </ol>
 <h2 id="prepare">Prepare:</h2>
+<p><strong>Ansible</strong>:<br>
+Ansible 2.3+ needs to be installed before executing the prepare playbook listed below.</p>
 <p>Before running the Ansible deploy for Azure, all the dependencies needed for Azure Python API must be installed. This document uses azure-cli 2.0.26. The <a href="reference-architecture/azure-ansible/3.6/ansibledeployocp/playbooks/prepare.yaml">reference-architecture/azure-ansible/3.6/ansibledeployocp/playbooks/prepare.yaml</a> playbook can be used that to automate this on  <code>localhost</code> by running the command below.</p>
 <pre class=" language-bash"><code class="prism  language-bash">ansible-playbook playbooks/prepare.yml
 </code></pre>
