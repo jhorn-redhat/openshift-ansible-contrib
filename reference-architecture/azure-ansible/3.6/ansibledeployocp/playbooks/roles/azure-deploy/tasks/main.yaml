@@ -67,6 +67,8 @@
         value: "{{ masterkeydata }}"
       masterCaData:
         value: "{{ mastercadata }}"
+      identityProviders:
+        value: "{{ identityproviders }}"
 
   register: azuredeploy
 

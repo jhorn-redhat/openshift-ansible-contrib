@@ -366,6 +366,13 @@
 			"metadata": {
 				"description": "Enable OCP aggregated logging for ops"
 			}
+		},
+		"identityProviders": {
+		        "type": "string",
+			"defaultValue": "",
+			"metadata": {
+                                "description": "Configure OCP authentication providers."
+			}
 		}
 	},
 	"variables": {
@@ -376,10 +383,15 @@
 		"baseVMachineTemplateUriInfranode": "[concat(variables('baseTemplateUrl'), 'infranode.json')]",
 		"baseVMachineTemplateUriNode": "[concat(variables('baseTemplateUrl'), 'node.json')]",
 		"baseVMachineTemplateUriMaster": "[concat(variables('baseTemplateUrl'), 'master.json')]",
+	  "groupName": "[replace(resourceGroup().name,'-', '')]",
 		"location": "[resourceGroup().location]",
                 "osm_cluster_network_cidr": "10.29.0.0/16",
                 "openshift_portal_net": "10.28.0.0/16",
+<<<<<<< HEAD
                 "virtualNetworkName": "myvnet",
+=======
+                "virtualNetworkName": "dev-spec-westus",
+>>>>>>> dev
                 "addressPrefix": "10.8.145.96/27",
                 "infranodesubnetName": "infranode",
                 "infranodesubnetPrefix": "10.8.145.112/29",
@@ -387,7 +399,10 @@
                 "nodesubnetPrefix": "10.8.145.120/29",
                 "mastersubnetName": "master",
                 "mastersubnetPrefix": "10.8.145.96/28",
+<<<<<<< HEAD
 	   "groupName": "[replace(resourceGroup().name,'-', '')]",
+=======
+>>>>>>> dev
 		"infranodeStorageName": "[concat('sainf', variables('groupName'))]",
 		"nodeStorageName": "[concat('sanod',variables('groupName'))]",
 		"masterStorageName": "[concat('samas', variables('groupName'))]",
@@ -820,6 +835,9 @@
 					},
 					"autoInstall": {
 						"value": "[parameters('autoInstall')]"
+					},
+					"identityProviders": {
+					        "value": "[parameters('identityProviders')]"
 					}
 				}
 			}

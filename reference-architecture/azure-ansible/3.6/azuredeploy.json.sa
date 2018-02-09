@@ -369,6 +369,13 @@
 			"metadata": {
 				"description": "Enable OCP aggregated logging for ops"
 			}
+		},
+		"identityProviders": {
+		        "type": "string",
+			"defaultValue": "",
+			"metadata": {
+                                "description": "Configure OCP authentication providers."
+			}
 		}
 	},
 	"variables": {
@@ -379,6 +386,7 @@
 		"baseVMachineTemplateUriInfranode": "[concat(variables('baseTemplateUrl'), 'infranode.json')]",
 		"baseVMachineTemplateUriNode": "[concat(variables('baseTemplateUrl'), 'node.json')]",
 		"baseVMachineTemplateUriMaster": "[concat(variables('baseTemplateUrl'), 'master.json')]",
+	  "groupName": "[replace(resourceGroup().name,'-', '')]",
 		"location": "[resourceGroup().location]",
                 "osm_cluster_network_cidr": "10.29.0.0/16",
                 "openshift_portal_net": "10.28.0.0/16",
@@ -390,7 +398,6 @@
                 "infranodesubnetPrefix": "10.8.151.16/28",
                 "nodesubnetName": "node",
                 "nodesubnetPrefix": "10.8.151.32/27",
-	        "groupName": "[replace(resourceGroup().name,'-', '')]",
 		"infranodeStorageName": "[concat('sainf', variables('groupName'))]",
 		"nodeStorageName": "[concat('sanod',variables('groupName'))]",
 		"masterStorageName": "[concat('samas', variables('groupName'))]",
@@ -826,6 +833,9 @@
 					},
 					"autoInstall": {
 						"value": "[parameters('autoInstall')]"
+					},
+					"identityProviders": {
+					        "value": "[parameters('identityProviders')]"
 					}
 				}
 			}
