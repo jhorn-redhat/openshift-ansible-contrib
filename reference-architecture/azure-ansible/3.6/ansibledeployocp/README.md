@@ -1,9 +1,41 @@
----
+<!DOCTYPE html>
+<html>
 
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ref-arch-readme</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
 
----
+<body class="stackedit">
+  <div class="stackedit__left">
+    <div class="stackedit__toc">
+      
+<ul>
+<li><a href="#openshift-container-platform-on-azure-using-ansible-deployment-of-arm">OpenShift Container Platform on Azure using Ansible deployment of ARM</a></li>
+<li><a href="#setup">Setup</a></li>
+<li><a href="#prepare">Prepare</a>
+<ul>
+<li><a href="#ansible">Ansible:</a></li>
+<li><a href="#service-principal">Service Principal</a></li>
+</ul>
+</li>
+<li><a href="#deployment">Deployment</a>
+<ul>
+<li><a href="#arm-templates">ARM Templates</a></li>
+<li><a href="#parameters-required">Parameters required</a></li>
+<li><a href="#running-the-deploy">Running the deploy</a></li>
+<li><a href="#removing">Removing</a></li>
+</ul>
+</li>
+</ul>
 
-<h1 id="openshift-container-platform-on-azure-using-ansible-deployment-of-arm">OpenShift Container Platform on Azure using Ansible deployment of ARM</h1>
+    </div>
+  </div>
+  <div class="stackedit__right">
+    <div class="stackedit__html">
+      <h1 id="openshift-container-platform-on-azure-using-ansible-deployment-of-arm">OpenShift Container Platform on Azure using Ansible deployment of ARM</h1>
 <p>This repository contains a few scripts and playbooks to deploy an OpenShift Container Platform on Azure using Ansible and ARM templates. This is a helper method on the <a href="https://access.redhat.com/documentation/en-us/reference_architectures/2017/html-single/deploying_red_hat_openshift_container_platform_3_on_microsoft_azure/">OpenShift Container Platform on Azure reference architecture document</a>.<br>
 This ARM template is designed to deploy into an existing resourcegroup and vNet.  The vNet and subnets must be created before deployment and the ARM Template updated under ‘variables’ to match.</p>
 <h1 id="setup">Setup</h1>
@@ -218,3 +250,8 @@ localhost                  <span class="token keyword">:</span> ok<span class="t
 <pre class=" language-bash"><code class="prism  language-bash">ansible-playbook -e @vars.yaml playbooks/destroy.yaml
 </code></pre>
 
+    </div>
+  </div>
+</body>
+
+</html>
