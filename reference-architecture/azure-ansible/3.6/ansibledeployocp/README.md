@@ -166,6 +166,11 @@ These variables if unset default to using <a href="http://nip.io">nip.io</a></p>
 <li><strong>customdns</strong>:  Used to resolve {{ domain }} with {{ nameserver }} in dnsmaq.  Enables nodes/pods to resolve domains outside of vNet.</li>
 <li><strong>fqdn</strong>:  this is the wildcard FQDN , ex. ‘<a href="http://dev.example.com">dev.example.com</a>’</li>
 <li><strong>masterurl</strong>:  Console address, ex. ‘console.{{ fqdn }}’</li>
+<li><strong>identityproviders</strong>: base64 string, defaults to  htpasswd
+<ul>
+<li><code>echo "[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]" | base64</code></li>
+</ul>
+</li>
 </ul>
 <p>These Variables deploy named certificates when using the domains above, “FQDN” (wildcard) and “MASTERURL” (console).</p>
 <ul>
