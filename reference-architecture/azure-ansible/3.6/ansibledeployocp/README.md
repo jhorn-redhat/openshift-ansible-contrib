@@ -1,8 +1,3 @@
----
-
-
----
-
 <h1 id="openshift-container-platform-on-azure-using-ansible-deployment-of-arm">OpenShift Container Platform on Azure using Ansible deployment of ARM</h1>
 <p>This repository contains a few scripts and playbooks to deploy an OpenShift Container Platform on Azure using Ansible and ARM templates. This is a helper method on the <a href="https://access.redhat.com/documentation/en-us/reference_architectures/2017/html-single/deploying_red_hat_openshift_container_platform_3_on_microsoft_azure/">OpenShift Container Platform on Azure reference architecture document</a>.<br>
 This ARM template is designed to deploy into an existing resourcegroup and vNet.  The vNet and subnets must be created before deployment and the ARM Template updated under ‘variables’ to match.</p>
