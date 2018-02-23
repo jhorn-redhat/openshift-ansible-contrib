@@ -643,6 +643,7 @@ openshift_node_labels=\"{'role':'app','zone':'default','logging':'true'}\"" >> /
 done
 
 
+
 # FIX: if specifying specific version openshift_pkg_version
 #      this will enable the installation of atomic-openshift{{ openshift_pkg_version }}
 #      in subscribe.yml below
@@ -661,7 +662,8 @@ cat <<EOF > /home/${AUSERNAME}/subscribe.yml
     wait_for: path=/root/.updateok
 - hosts: all
   vars:
-    description: "Subscribe OCP"
+    description: "Subscribe OCP"    
+    ocp_release: "{{ openshift_release }}"
   tasks:
   - name: check connection
     ping:
@@ -709,7 +711,7 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
   - name: enable fastpath repos
     shell: subscription-manager repos --enable="rhel-7-fast-datapath-rpms"
   - name: enable OCP repos
-    shell: subscription-manager repos --enable="rhel-7-server-ose-3.6-rpms"
+    shell: subscription-manager repos --enable="rhel-7-server-ose-{{ ocp_release }}-rpms"
   - name: install the latest version of PyYAML
     yum: name=PyYAML state=latest
   - name: Update all hosts"
@@ -741,20 +743,30 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
     register: docker_status 
 
   - name: Restart host
-    block:
-    - name: Restart host
-      become: yes
-      shell: sleep 2 && /sbin/shutdown -r now "Ansible Reboot"
-      async: 0
-      poll: 0
+     block:
+     - name: Reboot node
+       command: shutdown -r +1
+       async: 600
+       poll: 0
+       when: docker_status|failed
+ 
+     - name: Wait for node to come back
+       local_action: wait_for
+       args:
+         host: "{{ ansible_nodename }}"
+         port: 22
+         state: started
+         # Wait for the reboot delay from the previous task plus 10 seconds.
+         # Otherwise, the SSH port would still be open because the system
+         # has not rebooted.
+         delay: 70
+         timeout: 600
+       register: wait_for_reboot
+ 
+     - name: Wait for Things to Settle
+       pause: minutes=2
+     when: docker_status|failed
 
-    - name: Wait for system to become reachable
-      wait_for_connection:
-        timeout: 300
-    when: docker_status|failed
-
-  - name: Wait for Things to Settle
-    pause: minutes=2
 EOF
 
 cat <<EOF > /home/${AUSERNAME}/postinstall.yml
@@ -1146,7 +1158,7 @@ attach_nic_lb_azure()
 create_node_azure()
 {
   common_azure
-  export SUBNET="nodeSubnet"
+  export SUBNET="node"
   export SA="sanod\${RESOURCEGROUP//-}"
   create_host_azure
 }
@@ -1154,7 +1166,7 @@ create_node_azure()
 create_master_azure()
 {
   common_azure
-  export SUBNET="masterSubnet"
+  export SUBNET="master"
   export SA="samas\${RESOURCEGROUP//-}"
   export LB="MasterLb\${RESOURCEGROUP//-}"
   create_host_azure
@@ -1167,7 +1179,7 @@ create_master_azure()
 create_infranode_azure()
 {
   common_azure
-  export SUBNET="infranodeSubnet"
+  export SUBNET="infranode"
   export SA="sanod\${RESOURCEGROUP//-}"
   export LB=\$(azure network lb list \${RESOURCEGROUP} --json | jq -r '.[].name' | grep -v "MasterLb")
   create_host_azure
@@ -1180,16 +1192,16 @@ create_infranode_azure()
 common_azure()
 {
   echo "Getting the VM name..."
-  export LASTVM=\$(azure vm list \${RESOURCEGROUP} | awk "/\${TYPE}/ { print \$3 }" | tail -n1)
+  export LASTVM=\$(azure vm list \${RESOURCEGROUP} | awk "/\${TYPE}/ { print \\\$3 }" | tail -n1)
   if [ \$TYPE == 'node' ]
   then
     # Get last 2 numbers and add 1
-    LASTNUMBER=\$((10#\${LASTVM: -2}+1))
+    LASTNUMBER=\$((10#\${LASTVM: (-2)}+1))
     # Format properly XX
     NEXT=\$(printf %02d \$LASTNUMBER)
   else
     # Get last number
-    NEXT=\$((\${LASTVM: -1}+1))
+    NEXT=\$((\${LASTVM: (-1)}+1))
   fi
   export VMNAME="\${TYPE}\${NEXT}"
   export SUBSCRIPTION=\$(azure account list --json | jq -r '.[0].id')
@@ -1256,7 +1268,7 @@ add_master_openshift(){
 # Default values
 export IPCONFIG="ipconfig1"
 export HOSTCACHING="None"
-export NET="openshiftVnet"
+export NET=\$(< ~/.azuresettings/resource_group)
 export IMAGE="RHEL"
 export SACONTAINER="openshiftvmachines"
 export APIPORT="443"
