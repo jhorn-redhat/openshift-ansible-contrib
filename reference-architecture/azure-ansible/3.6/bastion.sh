@@ -1406,6 +1406,7 @@ metadata:
 provisioner: kubernetes.io/azure-disk
 parameters:
   storageAccount: sapv${RESOURCEGROUP//-}
+  location: ${LOCATION}
 EOF
 
 cat <<EOF > /home/${AUSERNAME}/openshift-install.sh
