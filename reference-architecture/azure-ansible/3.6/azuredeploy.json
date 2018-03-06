@@ -1204,7 +1204,7 @@
 			"properties": {
 				"publicIPAllocationMethod": "Static",
 				"dnsSettings": {
-					"domainNameLabel": "[concat(parameters('WildcardZone'), 'spec')]"
+					"domainNameLabel": "[parameters('WildcardZone')]"
 				}
 			}
 		},
