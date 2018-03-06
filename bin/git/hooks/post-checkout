@@ -1,0 +1,30 @@
+#!/bin/bash                                                                      
+
+set -e                                                                           
+
+printf '\npost-checkout hook\n\n'                                                
+
+prevHEAD=$1                                                                      
+newHEAD=$2                                                                       
+checkoutType=$3                                                                  
+
+[[ $checkoutType == 1 ]] && checkoutType='branch' ||                             
+                            checkoutType='file' ;                                
+
+echo 'Checkout type: '$checkoutType                                              
+echo '    prev HEAD: '`git name-rev --name-only $prevHEAD`                       
+echo '     new HEAD: '`git name-rev --name-only $newHEAD`
+
+# set azure account to correct subscription depending on branch
+HEAD=$(git name-rev --name-only $newHEAD)
+SUB=$(echo ${HEAD} |tr [:lower:] [:upper:])
+if [[ ${HEAD} == 'prod' ]]; then
+  az_sub=$(az account list -o table | awk "/${SUB}/ {print \$1}")
+  echo "Switching Azure subscription to ${az_sub}"
+  az account set -s ${az_sub}
+elif [[ ${HEAD} =~ lab|dev ]]; then
+  az_sub=$(az account list -o table | awk '/DEV/ {print $1}')
+  echo "Switching Azure subscription to ${az_sub}"
+  az account set -s ${az_sub}
+fi
+  
