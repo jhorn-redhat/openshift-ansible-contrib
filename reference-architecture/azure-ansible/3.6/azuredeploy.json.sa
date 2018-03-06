@@ -382,7 +382,7 @@
 		"gituser": "jhorn-redhat",
 		"branch": "master",
 		"version": "3.6",
-		"baseTemplateUrl": "https://openshiftrefarch.blob.core.windows.net/ocp-dev/",
+		"baseTemplateUrl": "https://openshiftrefarch.blob.core.windows.net/ocp-prod/",
 		"baseVMachineTemplateUriInfranode": "[concat(variables('baseTemplateUrl'), 'infranode.json')]",
 		"baseVMachineTemplateUriNode": "[concat(variables('baseTemplateUrl'), 'node.json')]",
 		"baseVMachineTemplateUriMaster": "[concat(variables('baseTemplateUrl'), 'master.json')]",

@@ -13,28 +13,29 @@
 #pip install --upgrade pip && pip install azure-cli
 
 function setup {
-tempFile="${HOME}/.az_account"
-echo ${tempFile}
+  tempFile="${HOME}/.az_account"
 
+  echo "az login -u ${az_name}"
+  # check if logged in already
+  az account list -o table > ${tempFile}  2>/dev/null && grep -Eq "${az_sub}" ${tempFile}
+  if [[ $? != 0 ]]; then
+    echo "need to login"
+    az login
+  fi
 
-echo "az login -u ${az_name} -p \'${az_pass}\'"
-az login -u ${az_name} -p \'${az_pass}\'
-az account list > ${tempFile}
+  subscription_id=$(awk "/${az_sub}/ {print \$3}"  ${tempFile})
+  subscription_name=$(awk "/${az_sub}/ {print \$1}" ${tempFile})
+  az account set --subscription ${subscription_id}
 
-subscription_id=$(grep ${az_sub} -B2 ${tempFile} |awk -F'"' '/id/ {print $4}')
-subscription_name=$(grep ${az_sub} ${tempFile}   |awk -F'"' '{print $4}')
-az account set --subscription ${subscription_id}
-
-
-echo "Creating SP ${sp_name}"
-az ad sp create-for-rbac -n ${sp_name} --role contributor --password ${sp_pass} \
- --scope /subscriptions/${subscription_id}
-
-client_id=$(az ad app show --id "http://${sp_name}"|awk -F'"' '/appId/  {print $4}')
-tenant_id=$(az account show|awk -F'"' '/\"tenantId"\:/ {print $4}' )
-
-echo "Creating Credentials ~/.azure/credentials"
-cat >  ~/.azure/credentials <<EOF
+  echo "Creating SP ${sp_name}"
+  az ad sp create-for-rbac -n ${sp_name} --role contributor --password ${sp_pass} \
+   --scope /subscriptions/${subscription_id}
+  
+  client_id=$(az ad app show --id "http://${sp_name}"|awk -F'"' '/appId/  {print $4}')
+  tenant_id=$(az account show|awk -F'"' '/\"tenantId"\:/ {print $4}' )
+  
+  echo "Creating Credentials ~/.azure/credentials"
+  cat >  ~/.azure/credentials <<EOF
 [${subscription_name}]
 subscription_id=${subscription_id}
 tenant=${tenant_id}
@@ -42,13 +43,13 @@ client_id=${client_id}
 secret=${sp_pass}
 EOF
 
-echo "Credentials:"
-echo -e "  Azure Login:      ${az_name}"
-echo -e "  Subscription ID:  ${subscription_id}"
-echo -e "  Subscription:     ${subscription_name}"
-echo -e "  Tenant ID:        ${tenant_id}"
-echo -e "  SP Name:          ${sp_name}"
-echo -e "  SP ID:            ${client_id}"
+  echo "Credentials:"
+  echo -e "  Azure Login:      ${az_name}"
+  echo -e "  Subscription ID:  ${subscription_id}"
+  echo -e "  Subscription:     ${subscription_name}"
+  echo -e "  Tenant ID:        ${tenant_id}"
+  echo -e "  SP Name:          ${sp_name}"
+  echo -e "  SP ID:            ${client_id}"
 
 }
 
