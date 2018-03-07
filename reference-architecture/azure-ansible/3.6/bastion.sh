@@ -1230,6 +1230,13 @@ add_node_openshift(){
   echo "Adding the node to the ansible inventory..."
   sudo sed -i "/^\${VMNAME}.*/d" /etc/ansible/hosts
   sudo sed -i "/\[nodes\]/a \${VMNAME} openshift_hostname=\${VMNAME} openshift_node_labels=\"{'role':'\${ROLE}','zone':'default','logging':'true'}\"" /etc/ansible/hosts
+  ansible -l \${VMNAME} -b -m command -a "nmcli con modify eth0 ipv4.dns-search $(domainname -d)"
+  ansible -l \${VMNAME} -b -m service -a "nmcli con up eth0"
+
+  # setup custom dnsmasq domain
+  ansible-playbook -l \${VMNAME}  /home/honeywell/custom-dnsmasq-domain.yml
+
+  ansible-playbook  /home/honeywell/setup-azure-node.yml
 }
 
 add_master_openshift(){
@@ -1263,6 +1270,9 @@ add_master_openshift(){
   sudo sed -i "/^\${VMNAME}.*/d" /etc/ansible/hosts
   sudo sed -i "/\[masters\]/a \${VMNAME} openshift_hostname=\${VMNAME} openshift_node_labels=\"{'role': '\${ROLE}'}\"" /etc/ansible/hosts
   sudo sed -i "/\[nodes\]/a \${VMNAME} openshift_hostname=\${VMNAME} openshift_node_labels=\"{'role':'\${ROLE}','zone':'default','logging':'true'}\" openshift_schedulable=false" /etc/ansible/hosts
+  # setup custom dnsmasq domain
+  ansible-playbook -l \${VMNAME}  /home/honeywell/custom-dnsmasq-domain.yml
+  ansible-playbook  /home/honeywell/setup-azure-node.yml
 }
 
 # Default values
