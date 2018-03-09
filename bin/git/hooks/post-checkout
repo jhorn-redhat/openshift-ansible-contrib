@@ -20,7 +20,7 @@ HEAD=$(git name-rev --name-only $newHEAD)
 SUB=$(echo ${HEAD} |tr [:lower:] [:upper:])
 
 # Make sure logged in
-if [[ $(az account show; echo $?) != 0 ]]; then
+if [[ $(az account show &> /dev/null;echo $?) != 0 ]]; then
   az login
 fi
 
