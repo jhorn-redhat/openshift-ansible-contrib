@@ -18,6 +18,12 @@ echo '     new HEAD: '`git name-rev --name-only $newHEAD`
 # set azure account to correct subscription depending on branch
 HEAD=$(git name-rev --name-only $newHEAD)
 SUB=$(echo ${HEAD} |tr [:lower:] [:upper:])
+
+# Make sure logged in
+if [[ $(az account show; echo $?) != 0 ]]; then
+  az login
+fi
+
 if [[ ${HEAD} == 'prod' ]]; then
   az_sub=$(az account list -o table | awk "/${SUB}/ {print \$1}")
   echo "Switching Azure subscription to ${az_sub}"
