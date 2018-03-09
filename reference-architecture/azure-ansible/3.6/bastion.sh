@@ -111,6 +111,59 @@ chmod 644 /home/octopus/.ssh/authorized_keys
 chown -R  octopus:octopus /home/octopus
 chown -R  bamboo:bamboo /home/bamboo
 ###
+
+# add other local user accounts
+for USER in clasohm jhorn jmcdonough tuttle; do
+    useradd -G wheel $USER
+    mkdir -m 700 /home/$USER/.ssh
+done
+
+for USER in bwheatle cmeidlin mnagel shsrivas srowley; do
+    useradd $USER
+    mkdir -m 700 /home/$USER/.ssh
+done
+
+cat >/home/bwheatle/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDfBWE+4CHziSDqkYE8Ntcf8cNhqAkepZCJ7NNtLApNtrYCyklrLa7DPSKoRj42vzFcWd17Dj+B/lUTOOHoIKQ9VcJpHV4BfC/s0g7QeKT0adMkB3ogZ9wBqrOeintTtECP6Y+bygi9pXu4zoC47liLLAC3Xy7XE0BqUyqN19kGn0sc10ZZYIR1rtlPYokCwavBZzhxmwgSo5QmFHDWzt55jPa8CHr6WB0sPH8z+mFc+bHqsx2Zbf5LPTTjw3Gn+xuDMZQtm9iIXcCqtbtvBx8lHfR040A0l9I7YwguYzC7FjgJiEfc/JCOJeZ9zPxdM/J/s1P/2Tpk1i1HFLWdE+yL bwheatley
+EOF
+
+cat >/home/clasohm/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAtENPMx0/h3RyvlPGeuWPM/g08D1DE0D914XMcIvYdR6ryD+gpMoRTfTMkIHmiaSNe1+Dd1yYzaT6CvWNZ0kyfLA9VKaVkqut7yWagaZOC8vBUKx2vUpJkw9OjeW+X9KDmTgaGnbc4eQm/ey+XPLRmwBLrxvtJ5dTLVrD3L6KQ/9HSPx898V+PmqSE9S+5hDXBpbA5r2R0DPlo0yFkaOJEaJ+BFZbcqX40t+MMRFdnPAS45BgSW1fqD3bDFXkzsdTOq3C7Z5ihCWMFcPxL0Ifp3o/LWEHRVh7N/rilZko+B/o3OP0iFHsIgJ9RIxahGQh4MlMU5ivI9v3ReL1x2icNQ== clasohm
+EOF
+
+cat >/home/cmeidlin/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAsYaFOg/txO6bT+xSeUMz3SASvJM+S5OZZOiJiH7glIyLoEUsK7vQ23phf+0sWgHZjxy1FOxcISa6jdB6K2ZPeh975lvgAuYJGz/79IhX2RejBuw39p9ujs7nRlg3ANNw14crikhzyeKszkZZ6+pJf9TvAUCBDegA7NqjZs0pNDJ35zWoF/ATIRoCvaJN1IV3lPgpp2zwo+9e+hWq+aS/Lkd/2DCTRdbvIjeyGQmNQu6GeTzTdI/n5if+VQ5N8QmDjkdHT78Cj8scleRv3b0snjC0rAAfeDW74Iy0plmaC2dWmXUGVzUFxSk9esVi3y4iIwfStJsMUcve535Z3ENo6w== cj
+EOF
+
+cat >/home/jhorn/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCzlRETx5/d/53o+hjWc+LKXhayVxhBYXoPUTQwBto2bX/JYaD9+Lxrq+2jxGngj6J96YcWfM4r9jm4ejBgC2gEnIJ60MQNEIlJIdVuBAY3y4Koi1dhrXWGcUp29cgEeav7uSuQHimAn0Z3jIVDXqMruIVdCZtx0pP2VWoxwQY8Y3/6+ZNgT2RkDNw+BsbEnaOkNLrP1ezPK5IwoFdoRJEPz3vzZzZzRyAzYOletFjSUSqCV2YgtKoShp/ErdeBn47AULDQ9jquXqI/MQYgCI84op7gjjT40sUoLsg6PuuWKzdEMxwHjYNaCwrqQArl7F0bWDT3H1QSK1fKHB0yXI3j jhorn
+EOF
+
+cat >/home/jmcdonough/.ssh/authorized_keys <<EOF
+EOF
+
+cat >/home/mnagel/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDQjByucPjIoaKkd4nwKAIYaA9FRqC2BvXevx5Ityj0Dzp5LJQjz2fuIsKfOwp1qP9SAkEA6JgBzKVlEna14dgcNHNyhaoHIiYXx8Y5uTJ/kGoJxHsf4UXWJoqdxI2C3ut2/a4iOC61kkjcOo0ZsjPpUsHuDTuG8YJ6+57Fr8yQYdeC/AvHr39E/n8zZ1OKtZOVZKidqBe+pKk+UTS2HXH67SnCWo3pTBjvwrpeu8229glcBsqbmKCj7HIS+HYl1eF8TgzzGwF0q1O79FNZsEB/+lYxmAUVyaQk1DDeMT3TF3OI9zmmNqV8nYDG3quvqzsp5LhMrRzAk1PqrZ9eulJQeQh0X4mRnTv5KR2itDbl47NoLjPGR+5+oL5LD9opvSZauAg+LOVv/J8v40MvtPEwXuoEoh1OTF6s/XbdqfFbuTQ7+X9rG5uOZ23atTRcJ7yTgUItjGKfwuJsKykqSTwjCA5JPFwQjvWn8nIFmPeNk7+rl05gGNdWciQVw0x5z8HunK7riib6dNSy5EwdghaUtsDiR42cX4T/JIa4AONt4PO38+B+5DsYNShU9k0tJV9kHYJKUySASDW62tF0kBBa5RieDTlk9VeVDLL3nTWYRbGvs1dGVrZwkLwhtvNV4qaoa3AmMNSOCUZSyKQmY3ESF8XFrCi+KonFrOwjSqfQBQ== mnagel
+EOF
+
+cat >/home/shsrivas/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCk7CjQtf66iTJLuWM46Umq4G9SGbTTmZqTilYaipSExU1K/HiOW4fFRidkkdoqzEQzAWFncqXL6FCv6PuJ71zql/0ZGeg72AqEl+5f9ifXEKYbKohVyjtv05SL+lkqCNy3flAWPogl6YXMJWOs+rbM7xqIbsam/esQcOIktCRW26DofV1LVxnCqPn+ipZFW6e/wJLTwdDuse38U3J2mjxLy/iEJ8HK5xYsSv+O5h+RIPB4e8PbBb4Jj4vzkdR8ps7PPrwpFh93JIWS2MyRE86NLbutEAVgKaVHzM5zstHR/AX+cqej7rg3uwIQmxLU2KW42VERNdCA7V0oGAPQ8utv shsrivas
+EOF
+
+cat >/home/srowley/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC2L4W2gsFG2tYM5zfArEUe/U8QcqMwm/+sbuJJNIcHN2aRXJwxFSwYBE3PmC4eqZkTgcg6r5Sxi9oPgrBNDn2UrzDBnNYGENbnqB7WBpBL/RuYSAnsjJSTLSwAKbBsuNGTq04ZL5XBKyk12Yh62BlQUz2xIoEOwjt6Rs0YP5bnv9H3ulNoVg4Jorhi59z+UZeoCyXGPMZHqTGoM2XL/Tpih/MviQMwOk7uTtLaHaWmTdF3W20K3UCiZIgm/jfk5KFkLzCrwSTXzyozlFNHz7QTT5lqxhtVWs9NV60j19CMdAKDsgzQyhQ8Npi0ld8gf3uxrOtS4O+/zxL2TLxH3VN/25ygELNsHK7Wg+gZdw+JmQA7Sg8u3za+Wz7UPneOflNzqOZPbWcyImPOgDzmymYbzWPpzEXFrAd4unMTMM2KUvfi9bdRbj30BAq+pIFq8qUgDXbAiu5FVKpD/4zEyaY7YBPTESe9kzGHzd1BsXsoggQ4D5tbYfYVZg4abNMg4ZJMcuvUb5BLvpVuY7X8/ei7tiJmdXb749+jfLoU7CVH8RhZTt/yWKrPpsGAJZf1oO5T+W0hDDDffdJXQxCkplwdfoD7dIU7Qvun57d6tnXYfKCnpL7grdgQtVe4U5fQxayFnv7Np4VOPjwut7vklrQOoH9uRd+hylonGNXIhHkvdQ== srowley
+EOF
+
+cat >/home/tuttle/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC5Tnh1DfnYwtwWZPzcXdfyZfJwWc6jGwhtjYZmy6gkKuSa0ETmTQpwY9WTA+/SncieoQLb3x9kHFrlO4Ofh4SHm6+TY75HA972I4L3+Vmz5W/2Ly7nTiXLP1R/O4Tc4RjFIChBvE0Gz4UQMkJgVB/aJcTJEMHRoj0R3mHK4kSpohVv29LKoSDtH821v2CC0Ih8Aw1qs0qjhlY4ovB3kgwzpO12RPwjrWWplynubRjxnSfrA7P//Wy3l9foRn5ka0+R3jCQb1K+HTz3EXANKIqh/FCgqsftIeUi0q1jUJz9oQxHoNFwcCkSkObOmu27w+ulZ1+yknmjZlOEH6RMZhLR h278331@ga69mln0002b9
+EOF
+
+for USER in clasohm jhorn jmcdonough tuttle bwheatle cmeidlin mnagel shsrivas srowley; do
+    chown -R $USER:$USER /home/$USER/.ssh
+    chmod -R g-w /home/$USER/.ssh
+done
+###
+
 echo "Resize Root FS"
 rootdev=`findmnt --target / -o SOURCE -n`
 rootdrivename=`lsblk -no pkname $rootdev`
