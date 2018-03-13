@@ -3,7 +3,7 @@
 # Azure Subscription to use
 AZ_SUB="SPEC.DEV"
 # Resource group for blob container
-RESOURCE_GROUP="openshift-rg"
+RESOURCE_GROUP="spec-platform"
 # Storage Account for blob container 
 STORAGE_ACCOUNT="openshiftrefarch"
 STORAGE_CONTAINER="ocp-prod"
@@ -14,14 +14,14 @@ FILES="${ARM_TEMPLATE}  azuredeploy.parameters.json bastion.json bastion.sh infr
 
 function usage {
   echo "Error: Requires 3 args"
-  echo -e "Usage: $0 [azure login] [azure password] [upload|delete]"
+  echo -e "Usage: $0 [upload|delete]"
   exit 1
 }
 
 function setup {
   tempFile="${HOME}/.az_account"
   
-  echo "az login -u ${az_name}"
+  echo "Checking if logged into azure subscription"
   # check if logged in already
   az account list -o table > ${tempFile}  2>/dev/null && grep -Eq "${AZ_SUB}" ${tempFile}
   if [[ $? != 0 ]]; then 
@@ -32,12 +32,11 @@ function setup {
   subscription_id=$(awk "/${AZ_SUB}/ {print \$3}"  ${tempFile})
   subscription_name=$(awk "/${AZ_SUB}/ {print \$1}" ${tempFile})
   az account set --subscription ${subscription_id}
+  AZ_STORAGE_ACCESS_KEY=$(az storage account keys list -g ${RESOURCE_GROUP} -n ${STORAGE_ACCOUNT} -o table | awk '/key1/ {print $3}')
+  export AZURE_STORAGE_ACCESS_KEY=${AZ_STORAGE_ACCESS_KEY}
+  export AZURE_STORAGE_ACCOUNT=${STORAGE_ACCOUNT}
+
  }
-
-AZ_STORAGE_ACCESS_KEY=$(az storage account keys list -g ${RESOURCE_GROUP} -n ${STORAGE_ACCOUNT} -o table | awk '/key1/ {print $3}')
-
-export AZURE_STORAGE_ACCESS_KEY=${AZ_STORAGE_ACCESS_KEY}
-export AZURE_STORAGE_ACCOUNT=${STORAGE_ACCOUNT}
 
 function upload() {
   # upload files to blob storage
@@ -52,18 +51,11 @@ function delete() {
   done
 }
 
-if [[ $# < 2 ]]; then
+if [[ $# < 1 ]]; then
   usage
-else
-  az_name=${1}
+elif  [[ $1 =~ delete|upload ]]; then
   setup
+  CMD=$1
+  echo "${CMD}ing"
+  ${CMD}
 fi
-
-if  [[ $2 =~ delete|upload ]]; then
-  CMD=$2
-else
-  usage
-fi
-
-echo "${CMD}ing"
-${CMD}

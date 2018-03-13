@@ -15,7 +15,7 @@
 function setup {
   tempFile="${HOME}/.az_account"
 
-  echo "az login -u ${az_name}"
+  echo "Checking if logged into azure subscription"
   # check if logged in already
   az account list -o table > ${tempFile}  2>/dev/null && grep -Eq "${az_sub}" ${tempFile}
   if [[ $? != 0 ]]; then
@@ -33,6 +33,7 @@ function setup {
   
   client_id=$(az ad app show --id "http://${sp_name}"|awk -F'"' '/appId/  {print $4}')
   tenant_id=$(az account show|awk -F'"' '/\"tenantId"\:/ {print $4}' )
+  az_name=$(az account show |grep -A1 -E "user.*{"|awk -F'"' '/name/ {print $4}')
   
   echo "Creating Credentials ~/.azure/credentials"
   cat >  ~/.azure/credentials <<EOF
@@ -53,14 +54,13 @@ EOF
 
 }
 
-if [[ $# < 4 ]]; then
-  echo "Error: Requires 4 args"
-  echo -e "Usage: $0 [azure login] [azure password] [service principal name to create] [service principal password] [subscription  PROD|DEV ] "
+if [[ $# < 3 ]]; then
+  echo "Error: Requires 3 args"
+  echo -e "Usage: $0 [service principal name to create] [service principal password] [subscription  PROD|DEV ] "
+  echo -e "Example: $0 sp_name password PROD"
 else
-  az_name=${1}
-  az_pass=${2}
-  sp_name=${3}
-  sp_pass=${4}
-  az_sub=${5}
+  sp_name=${1}
+  sp_pass=${2}
+  az_sub=${3}
   setup
 fi
