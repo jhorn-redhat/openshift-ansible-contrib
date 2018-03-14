@@ -518,7 +518,7 @@ openshift_master_api_port="{{ console_port }}"
 openshift_master_console_port="{{ console_port }}"
 openshift_override_hostname_check=true
 osm_use_cockpit=false
-openshift_release=v3.6
+openshift_release=3.6
 #openshift_pkg_version=-3.6.173.0.63
 openshift_cloudprovider_kind=azure
 openshift_node_local_quota_per_fsgroup=512Mi
@@ -743,7 +743,7 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
     register: docker_status 
 
   - name: Restart host
-     block:
+    block:
      - name: Reboot node
        command: shutdown -r +1
        async: 600
@@ -765,7 +765,7 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
  
      - name: Wait for Things to Settle
        pause: minutes=2
-     when: docker_status|failed
+    when: docker_status|failed
 
 EOF
 
@@ -1414,16 +1414,6 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 sleep 120
 ansible all --module-name=ping > ansible-preinstall-ping.out || true
 
-EOF
-
-if [[ ${CUSTOMDNS} != "false" ]];then
-  echo "# setup dnsmasq on bastion" >> /home/${AUSERNAME}/openshift-install.sh
-  echo "ansible-playbook /home/${AUSERNAME}/bastion-dnsmasq.yml" >> /home/${AUSERNAME}/openshift-install.sh
-  echo "# setup custom dnsmasq domain" >> /home/${AUSERNAME}/openshift-install.sh
-  echo "ansible-playbook /home/${AUSERNAME}/custom-dnsmasq-domain.yml" >> /home/${AUSERNAME}/openshift-install.sh
-fi
-
-cat <<EOF >> /home/${AUSERNAME}/openshift-install.sh
 
 ansible-playbook  /home/${AUSERNAME}/subscribe.yml
 ansible-playbook  /home/${AUSERNAME}/azure-config.yml
@@ -1435,7 +1425,16 @@ wget http://master1:443/api > healtcheck.out
 ansible all -b -m command -a "nmcli con modify eth0 ipv4.dns-search $(domainname -d)"
 ansible all -b -m service -a "name=NetworkManager state=restarted"
 
+EOF
 
+if [[ ${CUSTOMDNS} != "false" ]];then
+  echo "# setup dnsmasq on bastion" >> /home/${AUSERNAME}/openshift-install.sh
+  echo "ansible-playbook /home/${AUSERNAME}/bastion-dnsmasq.yml" >> /home/${AUSERNAME}/openshift-install.sh
+  echo "# setup custom dnsmasq domain" >> /home/${AUSERNAME}/openshift-install.sh
+  echo "ansible-playbook /home/${AUSERNAME}/custom-dnsmasq-domain.yml" >> /home/${AUSERNAME}/openshift-install.sh
+fi
+
+cat <<EOF >> /home/${AUSERNAME}/openshift-install.sh
 
 ansible-playbook  /home/${AUSERNAME}/setup-azure-node.yml
 
