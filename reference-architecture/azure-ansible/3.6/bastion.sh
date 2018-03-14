@@ -769,6 +769,122 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
 
 EOF
 
+cat <<EOF >> /home/${AUSERNAME}/upgrade.yml
+---
+- name: upgrade prep hosts file
+  hosts: localhost
+  become: true
+  vars:
+    openshift_release: "3.7"
+  tasks:
+    - debug: var=openshift_release
+
+    - name: "add variables for "
+      lineinfile:
+        #path: "./hosts"
+        path: "/etc/ansible/hosts"
+        state: "{{ item.state }}"
+        line: "{{ item.line }}"
+        insertafter: ".*OSEv3.*vars"
+        backup: yes
+      with_items:
+         - { state: 'present', line: 'openshift_rolling_restart_mode=system' }
+         - { state: 'present', line: 'openshift_enable_service_catalog=true' }
+         - { state: 'present', line: 'ansible_service_broker_install=false' }
+         - { state: 'present', line: 'template_service_broker_install=false' }
+         - { state: 'present', line: 'template_service_broker_selector=role=infra' }
+      tags: test
+
+    - name: "change variables for "
+      lineinfile:
+        path: "/etc/ansible/hosts"
+        state: "{{ item.state }}"
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        insertafter: ".*OSEv3.*vars"
+        backup: yes
+      with_items:
+         - { state: 'present', regexp: 'deployment_type=openshift-enterprise', line: 'openshift_deployment_type=openshift-enterprise' }
+         - { state: 'present', regexp: '^openshift_release', line: 'openshift_release={{ openshift_release }}' }
+      tags: test
+
+    - name: subscription-manager refresh
+      command: subscription-manager refresh
+
+    - name: Enable repos
+      command: 'subscription-manager repos --disable="rhel-7-server-ose-{{ openshift_release }}-rpms" \
+    --enable="rhel-7-server-ose-3.7-rpms" \
+    --enable="rhel-7-server-extras-rpms" \
+    --enable="rhel-7-fast-datapath-rpms"'
+
+    - name: Clean yum
+      command: yum clean all
+
+    - name: Install the OCP client
+      yum:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - atomic-openshift-utils
+        - atomic-openshift-clients
+
+- name: upgrade prep cluster
+  hosts: all
+  tasks:
+    - debug: var=openshift_release
+      tags: debug
+    - pause:
+    - name: subscription-manager refresh
+      command: subscription-manager refresh
+
+    - name: Enable repos
+      command: 'subscription-manager repos --disable="rhel-7-server-ose-3.6-rpms" \
+    --enable="rhel-7-server-ose-3.7-rpms" \
+    --enable="rhel-7-server-extras-rpms" \
+    --enable="rhel-7-fast-datapath-rpms"'
+
+    - name: Clean yum
+      command: yum clean all
+
+    - name: Install the OCP client
+      yum:
+        name: atomic-openshift-clients
+        state: latest
+
+- name: upgrade prep masters
+  hosts: masters
+  become: true
+  tasks:
+    - name: copy kube config to root
+      copy:
+        src: ~/.kube/config
+        dest: /root/.kube/config
+
+- import_playbook:  /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-cluster/upgrades/v3_7/upgrade.yml
+
+# after upgrade the dns search domain is erased
+- name: update DNS search
+  hosts: all
+  tasks:
+    - name: set domain
+      shell: domainname -d
+      register: domain
+      tags: domain
+      run_once: true
+      delegate_to: localhost
+
+    - debug: var=domain.stdout
+      tags: domain
+      run_once: true
+      delegate_to: localhost
+
+    - name: update dns search domain
+      command: 'nmcli con modify eth0 ipv4.dns-search {{ domain.stdout }}'
+
+    - name: Update resolv conf
+      command: 'nmcli con up eth0'
+EOF
+
 cat <<EOF > /home/${AUSERNAME}/postinstall.yml
 ---
 - hosts: masters
