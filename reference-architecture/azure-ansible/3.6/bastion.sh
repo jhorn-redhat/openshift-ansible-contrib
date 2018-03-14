@@ -518,19 +518,29 @@ openshift_master_api_port="{{ console_port }}"
 openshift_master_console_port="{{ console_port }}"
 openshift_override_hostname_check=true
 osm_use_cockpit=false
-openshift_release=3.6
 #openshift_pkg_version=-3.6.173.0.63
 openshift_cloudprovider_kind=azure
 openshift_node_local_quota_per_fsgroup=512Mi
 azure_resource_group=${RESOURCEGROUP}
 rhn_pool_id=${RHNPOOLID}
 openshift_install_examples=true
-deployment_type=openshift-enterprise
+# 3.7
+openshift_release=3.7
+openshift_deployment_type=openshift-enterprise
+# old
+#deployment_type=openshift-enterprise
+
 openshift_master_identity_providers=$(echo $IDENTITYPROVIDERS | base64 --d)
 openshift_master_manage_htpasswd=false
 
-os_sdn_network_plugin_name=${OPENSHIFTSDN}
+# 3.7
+openshift_rolling_restart_mode=system
+openshift_enable_service_catalog=true
+ansible_service_broker_install=false
+template_service_broker_install=false
+template_service_broker_selector=role=infra
 
+os_sdn_network_plugin_name=${OPENSHIFTSDN}
 # default selectors for router and registry services
 openshift_hosted_router_selector='role=infra'
 openshift_hosted_registry_selector='role=infra'
@@ -1709,10 +1719,12 @@ host_key_checking = False
 forks=30
 gather_timeout=60
 timeout=240
+callback_whitelist = profile_tasks, timer
 library = /usr/share/ansible:/usr/share/ansible/openshift-ansible/library
 [ssh_connection]
 control_path = ~/.ansible/cp/ssh%%h-%%p-%%r
 ssh_args = -o ControlMaster=auto -o ControlPersist=600s -o ControlPath=~/.ansible/cp-%h-%p-%r
+pipelining = True
 EOF
 
 

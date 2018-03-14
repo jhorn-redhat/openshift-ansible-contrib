@@ -24,7 +24,7 @@ if [[ $(az account show &> /dev/null;echo $?) != 0 ]]; then
   az login
 fi
 
-if [[ ${HEAD} == 'prod' ]]; then
+if [[ ${HEAD} =~ prod ]]; then
   az_sub=$(az account list -o table | awk "/${SUB}/ {print \$1}")
   echo "Switching Azure subscription to ${az_sub}"
   az account set -s ${az_sub}
