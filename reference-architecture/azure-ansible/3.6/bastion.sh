@@ -372,6 +372,7 @@ cat > /home/${AUSERNAME}/azure-config.yml <<EOF
           "subscriptionID" : "{{ g_subscriptionId }}",
           "tenantID" : "{{ g_tenantId }}",
           "resourceGroup": "{{ g_resourceGroup }}",
+          "useInstanceMetadata": true
         }
 EOF
 
