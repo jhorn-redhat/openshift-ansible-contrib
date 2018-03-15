@@ -140,6 +140,7 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCzlRETx5/d/53o+hjWc+LKXhayVxhBYXoPUTQwBto2
 EOF
 
 cat >/home/jmcdonough/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDV+1HVsAqfV0NVugDDm4cLQZxncuNGlRgHnUpWC11aBoXNORox+wE6AiZuN9e6XquYZYOh+PIthA1Xz4sKR+NEICO3kCmniss4XjvngzJZQWyHaq9/cAbEeme1yIXI2hBvBsjkeBOSJatjPpau/8xJASpTP3blrqPI3wscYLjTiL/4XLwgz17MhNy9vfZhcLv6wIoEWoHoE0L6W8gBbFIarp57uw1XxKHzp4hDPd7tzKV/1nvfFOYguVqlp2qJNxWZorKgYvE2pHX85CF+nq8UNeGBR6nuK7X+3H562Vb9A9i2P8VaD7jpcW5cIvq3XjLp9KQp7+pA0+eclO0VXNfh h273859
 EOF
 
 cat >/home/mnagel/.ssh/authorized_keys <<EOF
