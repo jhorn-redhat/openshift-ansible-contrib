@@ -1730,7 +1730,7 @@ EOF
 
 chmod 755 /home/${AUSERNAME}/openshift-install.sh
 chmod 755 /home/${AUSERNAME}/openshift-postinstall.sh
-oc create -f /home/${AUSERNAME}/scgeneric.yml
+#oc create -f /home/${AUSERNAME}/scgeneric.yml
 echo "${AUTOINSTALL}" > /home/${AUSERNAME}/.autoinstall
 
 if [[ ${AUTOINSTALL} != false ]]; then
