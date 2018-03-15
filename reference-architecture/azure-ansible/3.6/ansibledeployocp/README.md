@@ -1,5 +1,4 @@
 
-
 # OpenShift Container Platform on Azure using Ansible deployment of ARM
 
 This repository contains a few scripts and playbooks to deploy an OpenShift Container Platform on Azure using Ansible and ARM templates. This is a helper method on the [OpenShift Container Platform on Azure reference architecture document](https://access.redhat.com/documentation/en-us/reference_architectures/2017/html-single/deploying_red_hat_openshift_container_platform_3_on_microsoft_azure/).
