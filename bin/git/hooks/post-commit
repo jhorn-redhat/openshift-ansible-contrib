@@ -2,7 +2,7 @@
 
 set -e
 
-printf '\npost-checkout hook\n\n'
+printf '\npost-commit hook\n\n'
 
 # Uploading files after commit
 

@@ -525,10 +525,12 @@ azure_resource_group=${RESOURCEGROUP}
 rhn_pool_id=${RHNPOOLID}
 openshift_install_examples=true
 # 3.7
+#openshift_pkg_version=-3.7.14-1
 openshift_release=3.7
 openshift_deployment_type=openshift-enterprise
 # old
 #deployment_type=openshift-enterprise
+osm_project_request_message='osm_project_request_message'
 
 openshift_master_identity_providers=$(echo $IDENTITYPROVIDERS | base64 --d)
 openshift_master_manage_htpasswd=false
@@ -657,7 +659,7 @@ done
 # FIX: if specifying specific version openshift_pkg_version
 #      this will enable the installation of atomic-openshift{{ openshift_pkg_version }}
 #      in subscribe.yml below
-if [[ ! $(grep -qE '^openshift_pkg_version' /etc/ansible/hosts) ]];then 
+if [[  $(grep -qE '^openshift_pkg_version' /etc/ansible/hosts) ]];then 
   pkg_version=$(awk -F'=' '/^openshift_pkg_version/ {print $2}'  /etc/ansible/hosts)
   echo "FOUND: openshift_pkg_version ${pkg_version}"
 fi
@@ -683,17 +685,48 @@ cat <<EOF > /home/${AUSERNAME}/subscribe.yml
     file: path=/etc/yum.repos.d/rhui-load-balancers state=absent
   - name: remove the RHUI package
     yum: name=RHEL7 state=absent
+  - name: Allow rhsm a longer timeout to help out with subscription-manager
+    lineinfile:
+      dest: /etc/rhsm/rhsm.conf
+      line: 'server_timeout=600'
+      insertafter: '^proxy_password ='
   - name: Get rid of old subs
     shell: subscription-manager unregister
     ignore_errors: yes
+    register: remove_result
+    until: remove_result | success
+    retries: 10
+    delay: 30
   - name: register hosts
 EOF
-if [[ $RHSMMODE == "usernamepassword" ]]
-then
-    echo "    shell: subscription-manager register --username=\"${RHNUSERNAME}\" --password=\"${RHNPASSWORD}\"" >> /home/${AUSERNAME}/subscribe.yml
+
+if [[ $RHSMMODE == "usernamepassword" ]]; then
+cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
+    redhat_subscription:
+      state: present
+      username: "${RHNUSERNAME}"
+      password: "${RHNPASSWORD}"
+      pool: "${RHNPOOLID}"
+      force_register: yes
+EOF
 else
-    echo "    shell: subscription-manager register --org=\"${RHNPASSWORD}\" --activationkey=\"${RHNUSERNAME}\"" >> /home/${AUSERNAME}/subscribe.yml
+cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
+    redhat_subscription:
+      state: present
+      activationkey: "${RHNUSERNAME}"
+      org_id: "${RHNPASSWORD}"
+      pool: "${RHNPOOLID}"
+      force_register: yes
+
+EOF
 fi
+
+#if [[ $RHSMMODE == "usernamepassword" ]]
+#then
+#    echo "    shell: subscription-manager register --username=\"${RHNUSERNAME}\" --password=\"${RHNPASSWORD}\"" >> /home/${AUSERNAME}/subscribe.yml
+#else
+#    echo "    shell: subscription-manager register --org=\"${RHNPASSWORD}\" --activationkey=\"${RHNUSERNAME}\"" >> /home/${AUSERNAME}/subscribe.yml
+#fi
 cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
     register: task_result
     until: task_result.rc == 0
@@ -714,18 +747,36 @@ fi
 cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
   - name: disable all repos
     shell: subscription-manager repos --disable="*"
-  - name: enable rhel7 repo
-    shell: subscription-manager repos --enable="rhel-7-server-rpms"
-  - name: enable extras repos
-    shell: subscription-manager repos --enable="rhel-7-server-extras-rpms"
-  - name: enable fastpath repos
-    shell: subscription-manager repos --enable="rhel-7-fast-datapath-rpms"
-  - name: enable OCP repos
-    shell: subscription-manager repos --enable="rhel-7-server-ose-{{ ocp_release }}-rpms"
+    register: repo_result
+    until: repo_result | success
+    retries: 10
+    delay: 30
+  - name: enable repos
+    shell: subscription-manager repos --enable="rhel-7-server-rpms" \
+           --enable="rhel-7-server-extras-rpms" --enable="rhel-7-fast-datapath-rpms" \
+           --enable="rhel-7-server-ose-{{ ocp_release }}-rpms"
+    register: enable_result
+    until: enable_result | success
+    retries: 10
+    delay: 30
+#  - name: enable rhel7 repo
+#    shell: subscription-manager repos --enable="rhel-7-server-rpms"
+#  - name: enable extras repos
+#    shell: subscription-manager repos --enable="rhel-7-server-extras-rpms"
+#  - name: enable fastpath repos
+#    shell: subscription-manager repos --enable="rhel-7-fast-datapath-rpms"
+#  - name: enable OCP repos
+#    shell: subscription-manager repos --enable="rhel-7-server-ose-{{ ocp_release }}-rpms"
   - name: install the latest version of PyYAML
     yum: name=PyYAML state=latest
+  - name: Install the docker
+    yum: name=docker-1.12.6 state=present
   - name: Update all hosts"
-    yum: name="*" state=latest exclude="atomic-openshift,atomic-openshift-clients"
+    yum: name="*" state=latest exclude='atomic-openshift,atomic-openshift-clients,docker*'
+    register: update_result
+    until: update_result | success
+    retries: 10
+    delay: 30
 
 EOF
 
@@ -743,8 +794,6 @@ else
 fi
 
 cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
-  - name: Install the docker
-    yum: name=docker state=latest
   - name: Start Docker
     service:
       name: docker
