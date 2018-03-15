@@ -1,0 +1,14 @@
+# Uploading files after commit
+
+files="azuredeploy.json.sa azuredeploy.parameters.json bastion.json bastion.sh infranode.json master.json master.sh node.sh node.json"
+commit=$(git show --name-only --oneline HEAD|grep -vE '^[[:digit:]]')
+dir=$(git rev-parse --show-toplevel)/reference-architecture/azure-ansible/3.6
+
+for c in ${commit};do
+  status=$(echo ${files} |grep ${c};echo $? )
+  if [[ ${status} == 0 ]]; then
+    echo "uploading deployment files"
+    cd ${dir}
+    ./manageSaFiles.sh upload
+  fi
+done
