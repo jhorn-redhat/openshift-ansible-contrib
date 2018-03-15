@@ -220,7 +220,7 @@ fi
 subscription-manager attach --pool=$RHNPOOLID
 subscription-manager repos --disable="*"
 subscription-manager repos --enable="rhel-7-server-rpms" --enable="rhel-7-server-extras-rpms" --enable="rhel-7-fast-datapath-rpms"
-subscription-manager repos --enable="rhel-7-server-ose-3.6-rpms"
+subscription-manager repos --enable="rhel-7-server-ose-3.7-rpms"
 yum -y install atomic-openshift-utils git net-tools bind-utils iptables-services bridge-utils bash-completion httpd-tools nodejs qemu-img
 yum -y install --enablerepo="epel" jq
 touch /root/.updateok
@@ -229,6 +229,8 @@ touch /root/.updateok
 if [[ ${CUSTOMDNS} != "false" ]]; then
   DOMAIN=$(echo ${CUSTOMDNS} | awk -F'=' '{print $1}')
   NAMESERVER=$(echo ${CUSTOMDNS} | awk -F'=' '{print $2}')
+fi # end custom dns 
+
 cat > /home/${AUSERNAME}/bastion-dnsmasq.yml <<EOF
 - hosts: localhost
   gather_facts: yes
@@ -318,7 +320,6 @@ cat > /home/${AUSERNAME}/custom-dnsmasq-domain.yml <<EOF
         state: restarted
 EOF
 
-fi # end custom dns 
 
 # Create azure.conf file
 
@@ -518,7 +519,6 @@ openshift_master_api_port="{{ console_port }}"
 openshift_master_console_port="{{ console_port }}"
 openshift_override_hostname_check=true
 osm_use_cockpit=false
-#openshift_pkg_version=-3.6.173.0.63
 openshift_cloudprovider_kind=azure
 openshift_node_local_quota_per_fsgroup=512Mi
 azure_resource_group=${RESOURCEGROUP}
@@ -657,7 +657,7 @@ done
 # FIX: if specifying specific version openshift_pkg_version
 #      this will enable the installation of atomic-openshift{{ openshift_pkg_version }}
 #      in subscribe.yml below
-if [[ ! $(grep -q openshift_pkg_version /etc/ansible/hosts) ]];then 
+if [[ ! $(grep -qE '^openshift_pkg_version' /etc/ansible/hosts) ]];then 
   pkg_version=$(awk -F'=' '/^openshift_pkg_version/ {print $2}'  /etc/ansible/hosts)
   echo "FOUND: openshift_pkg_version ${pkg_version}"
 fi
@@ -822,8 +822,8 @@ cat <<EOF >> /home/${AUSERNAME}/upgrade.yml
       command: subscription-manager refresh
 
     - name: Enable repos
-      command: 'subscription-manager repos --disable="rhel-7-server-ose-{{ openshift_release }}-rpms" \
-    --enable="rhel-7-server-ose-3.7-rpms" \
+      command: 'subscription-manager repos --disable="rhel-7-server-ose-3.6-rpms" \
+    --enable="rhel-7-server-ose-{{ openshift_release }}-rpms" \
     --enable="rhel-7-server-extras-rpms" \
     --enable="rhel-7-fast-datapath-rpms"'
 
@@ -849,7 +849,7 @@ cat <<EOF >> /home/${AUSERNAME}/upgrade.yml
 
     - name: Enable repos
       command: 'subscription-manager repos --disable="rhel-7-server-ose-3.6-rpms" \
-    --enable="rhel-7-server-ose-3.7-rpms" \
+    --enable="rhel-7-server-ose-{{ openshift_release }}-rpms" \
     --enable="rhel-7-server-extras-rpms" \
     --enable="rhel-7-fast-datapath-rpms"'
 
