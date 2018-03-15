@@ -1,3 +1,9 @@
+#!/bin/bash
+
+set -e
+
+printf '\npost-checkout hook\n\n'
+
 # Uploading files after commit
 
 files="azuredeploy.json.sa azuredeploy.parameters.json bastion.json bastion.sh infranode.json master.json master.sh node.sh node.json"
