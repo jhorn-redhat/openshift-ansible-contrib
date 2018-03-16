@@ -11,6 +11,14 @@
       shell:  az vm list -g "{{ resourcegroupname }}" --query "[].name" -o tsv
       register: vm_list
     
+    - name: Unregister VMs
+      command: "az vm run-command invoke -g {{ resourcegroupname }}  -n {{ item }} --command-id RunShellScript --script 'sudo subscription-manager unregister'"
+      failed_when: "'FAILED' in unregister.stderr"
+      when: rhsmusernamepasswordoractivationkey == "activationkey"
+      register: unregister
+      with_items:
+        - "{{ vm_list.stdout_lines }}"
+
     - name: Destroy Azure | Delete VMs
       azure_rm_virtualmachine:
         resource_group: "{{ resourcegroupname }}"
