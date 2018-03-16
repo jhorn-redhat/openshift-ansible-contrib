@@ -1577,33 +1577,33 @@ EOF
 cat <<EOF > /home/${AUSERNAME}/openshift-install.sh
 export ANSIBLE_HOST_KEY_CHECKING=False
 sleep 200
-ansible all --module-name=ping > ansible-preinstall-ping.out || true
+ansible all --module-name=ping > ansible-preinstall-ping.out || true &&
 
 
-ansible-playbook  /home/${AUSERNAME}/subscribe.yml
-ansible-playbook  /home/${AUSERNAME}/azure-config.yml
+ansible-playbook  /home/${AUSERNAME}/subscribe.yml &&
+ansible-playbook  /home/${AUSERNAME}/azure-config.yml &&
 echo "${RESOURCEGROUP} Bastion Host is starting ansible BYO" | mail -s "${RESOURCEGROUP} Bastion BYO Install" ${RHNUSERNAME} || true
-ansible-playbook  /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml < /dev/null
+ansible-playbook  /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml < /dev/null &&
 
 wget http://master1:443/api > healtcheck.out
 
-ansible all -b -m command -a "nmcli con modify eth0 ipv4.dns-search $(domainname -d)"
-ansible all -b -m service -a "name=NetworkManager state=restarted"
+ansible all -b -m command -a "nmcli con modify eth0 ipv4.dns-search $(domainname -d)" &&
+ansible all -b -m service -a "name=NetworkManager state=restarted" &&
 
 EOF
 
 if [[ ${CUSTOMDNS} != "false" ]];then
   echo "# setup dnsmasq on bastion" >> /home/${AUSERNAME}/openshift-install.sh
-  echo "ansible-playbook /home/${AUSERNAME}/bastion-dnsmasq.yml" >> /home/${AUSERNAME}/openshift-install.sh
+  echo "ansible-playbook /home/${AUSERNAME}/bastion-dnsmasq.yml &&" >> /home/${AUSERNAME}/openshift-install.sh
   echo "# setup custom dnsmasq domain" >> /home/${AUSERNAME}/openshift-install.sh
-  echo "ansible-playbook /home/${AUSERNAME}/custom-dnsmasq-domain.yml" >> /home/${AUSERNAME}/openshift-install.sh
+  echo "ansible-playbook /home/${AUSERNAME}/custom-dnsmasq-domain.yml &&" >> /home/${AUSERNAME}/openshift-install.sh
 fi
 
 cat <<EOF >> /home/${AUSERNAME}/openshift-install.sh
 
-ansible-playbook  /home/${AUSERNAME}/setup-azure-node.yml
+ansible-playbook  /home/${AUSERNAME}/setup-azure-node.yml &&
 
-ansible-playbook /home/${AUSERNAME}/postinstall.yml
+ansible-playbook /home/${AUSERNAME}/postinstall.yml &&
 cd /root
 mkdir .kube
 scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${AUSERNAME}@master1:~/.kube/config /tmp/kube-config
