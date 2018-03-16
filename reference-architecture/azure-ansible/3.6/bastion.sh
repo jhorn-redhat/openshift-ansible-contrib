@@ -615,6 +615,8 @@ openshift_logging_fluentd_nodeselector={"logging":"true"}
 openshift_logging_es_nodeselector={"role":"infra"}
 openshift_logging_kibana_nodeselector={"role":"infra"}
 openshift_logging_curator_nodeselector={"role":"infra"}
+# v3.7 
+openshift_logging_es_pvc_storage_class_name=""
 
 openshift_logging_use_ops=false
 #openshift_logging_es_ops_pv_selector={"usage":"opselasticsearch"}
@@ -1744,9 +1746,11 @@ forks=30
 gather_timeout=60
 timeout=240
 library = /usr/share/ansible:/usr/share/ansible/openshift-ansible/library
+callback_whitelist = profile_tasks, timer
 [ssh_connection]
 control_path = ~/.ansible/cp/ssh%%h-%%p-%%r
 ssh_args = -o ControlMaster=auto -o ControlPersist=600s -o ControlPath=~/.ansible/cp-%h-%p-%r
+pipelining = True
 EOF
 chown ${AUSERNAME} /home/${AUSERNAME}/.ansible.cfg
 
