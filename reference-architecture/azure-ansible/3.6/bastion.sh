@@ -503,7 +503,8 @@ new_nodes
 new_masters
 
 [OSEv3:vars]
-
+# fix for kb 3376031 bz1551862
+openshift_disable_check=package_version
 osm_controller_args={'cloud-provider': ['azure'], 'cloud-config': ['/etc/azure/azure.conf']}
 osm_api_server_args={'cloud-provider': ['azure'], 'cloud-config': ['/etc/azure/azure.conf']}
 openshift_node_kubelet_args={'enable-controller-attach-detach': ['true']}
@@ -694,9 +695,6 @@ cat <<EOF > /home/${AUSERNAME}/subscribe.yml
     shell: subscription-manager unregister
     ignore_errors: yes
     register: remove_result
-    until: remove_result | success
-    retries: 10
-    delay: 30
   - name: register hosts
 EOF
 
@@ -729,7 +727,7 @@ fi
 #fi
 cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
     register: task_result
-    until: task_result.rc == 0
+    until: task_result | success
     retries: 10
     delay: 30
     ignore_errors: yes
@@ -759,19 +757,11 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
     until: enable_result | success
     retries: 10
     delay: 30
-#  - name: enable rhel7 repo
-#    shell: subscription-manager repos --enable="rhel-7-server-rpms"
-#  - name: enable extras repos
-#    shell: subscription-manager repos --enable="rhel-7-server-extras-rpms"
-#  - name: enable fastpath repos
-#    shell: subscription-manager repos --enable="rhel-7-fast-datapath-rpms"
-#  - name: enable OCP repos
-#    shell: subscription-manager repos --enable="rhel-7-server-ose-{{ ocp_release }}-rpms"
   - name: install the latest version of PyYAML
     yum: name=PyYAML state=latest
   - name: Install the docker
     yum: name=docker-1.12.6 state=present
-  - name: Update all hosts"
+  - name: Update all hosts
     yum: name="*" state=latest exclude='atomic-openshift,atomic-openshift-clients,docker*'
     register: update_result
     until: update_result | success
@@ -1586,7 +1576,7 @@ EOF
 
 cat <<EOF > /home/${AUSERNAME}/openshift-install.sh
 export ANSIBLE_HOST_KEY_CHECKING=False
-sleep 120
+sleep 200
 ansible all --module-name=ping > ansible-preinstall-ping.out || true
 
 
