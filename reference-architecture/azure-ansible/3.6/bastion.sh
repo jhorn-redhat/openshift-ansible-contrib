@@ -596,7 +596,7 @@ openshift_master_cluster_hostname=${PUBLICHOSTNAME}
 openshift_master_cluster_public_hostname=${PUBLICHOSTNAME}
 
 # Do not install metrics but post install
-openshift_metrics_install_metrics=true
+openshift_metrics_install_metrics=false
 openshift_metrics_cassandra_storage_type=dynamic
 openshift_metrics_cassandra_pvc_size="${METRICS_CASSANDRASIZE}G"
 openshift_metrics_cassandra_replicas="${METRICS_INSTANCES}"
@@ -605,7 +605,7 @@ openshift_metrics_cassandra_nodeselector={"role":"infra"}
 openshift_metrics_heapster_nodeselector={"role":"infra"}
 
 # Do not install logging but post install
-openshift_logging_install_logging=true
+openshift_logging_install_logging=false
 openshift_logging_master_public_url=https://${PUBLICHOSTNAME}
 #openshift_logging_es_pv_selector={"usage":"elasticsearch"}
 openshift_logging_es_pvc_dynamic="true"
@@ -1776,6 +1776,6 @@ if [[ ${AUTOINSTALL} != false ]]; then
   cd /home/${AUSERNAME}
   echo "${RESOURCEGROUP} Bastion Host is starting OpenShift Install" | mail -s "${RESOURCEGROUP} Bastion OpenShift Install Starting" ${RHNUSERNAME} || true
   /home/${AUSERNAME}/openshift-install.sh &> /home/${AUSERNAME}/openshift-install.out &
-#  /home/${AUSERNAME}/openshift-postinstall.sh &> /home/${AUSERNAME}/openshift-postinstall.out &
+  /home/${AUSERNAME}/openshift-postinstall.sh &> /home/${AUSERNAME}/openshift-postinstall.out &
 fi
 exit 0
