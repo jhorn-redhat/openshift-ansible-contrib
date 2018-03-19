@@ -502,6 +502,20 @@ new_nodes
 new_masters
 
 [OSEv3:vars]
+# 3.7
+openshift_release=3.7
+openshift_deployment_type=openshift-enterprise
+# fix for kb 3376031 bz1551862
+openshift_disable_check=package_version
+# Service Broker
+openshift_enable_service_catalog=true
+ansible_service_broker_install=false
+template_service_broker_install=false
+template_service_broker_selector=role=infra
+openshift_rolling_restart_mode=system
+#3.6 uses deployment_type
+#deployment_type=openshift-enterprise
+#openshift_pkg_version=-3.6.173.0.63
 
 osm_controller_args={'cloud-provider': ['azure'], 'cloud-config': ['/etc/azure/azure.conf']}
 osm_api_server_args={'cloud-provider': ['azure'], 'cloud-config': ['/etc/azure/azure.conf']}
@@ -518,19 +532,6 @@ openshift_master_api_port="{{ console_port }}"
 openshift_master_console_port="{{ console_port }}"
 openshift_override_hostname_check=true
 osm_use_cockpit=false
-
-# TODO: Add to 3.7 ref arch
-# Service Broker
-openshift_enable_service_catalog=true
-ansible_service_broker_install=false
-template_service_broker_install=false
-template_service_broker_selector=role=infra
-openshift_release=3.7
-openshift_deployment_type=openshift-enterprise
-openshift_rolling_restart_mode=system
-#3.6 uses deployment_type
-#deployment_type=openshift-enterprise
-#openshift_pkg_version=-3.6.173.0.63
 openshift_cloudprovider_kind=azure
 openshift_node_local_quota_per_fsgroup=512Mi
 azure_resource_group=${RESOURCEGROUP}
