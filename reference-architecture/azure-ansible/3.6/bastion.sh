@@ -618,6 +618,17 @@ openshift_logging_curator_nodeselector={"role":"infra"}
 # v3.7 
 openshift_logging_es_pvc_storage_class_name=""
 
+# prometheus
+#openshift_prometheus_additional_rules_file
+openshift_prometheus_pvc_access_modes=ReadWriteOnce
+openshift_prometheus_pvc_size="100Gi"
+openshift_prometheus_storage_type=pvc
+openshift_prometheus_alertmanager_storage_type=pvc
+openshift_prometheus_alertmanager_pvc_name=alertmanager
+openshift_prometheus_alertbuffer_storage_type=pvc
+#openshift_prometheus_alertbuffer_pvc_size=10Gi
+openshift_prometheus_node_selector={"role":"infra"}
+
 openshift_logging_use_ops=false
 #openshift_logging_es_ops_pv_selector={"usage":"opselasticsearch"}
 openshift_logging_es_ops_pvc_dynamic="true"
@@ -717,7 +728,6 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
       org_id: "${RHNPASSWORD}"
       pool: "${RHNPOOLID}"
       force_register: yes
-
 EOF
 fi
 
@@ -814,7 +824,7 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
          timeout: 600
        register: wait_for_reboot
  
-     - name: Wait for Things to Settle
+  - name: Wait for Things to Settle
        pause: minutes=2
     when: docker_status|failed
 
