@@ -513,9 +513,11 @@ ansible_service_broker_install=false
 template_service_broker_install=false
 template_service_broker_selector=role=infra
 openshift_rolling_restart_mode=system
+
 #3.6 uses deployment_type
 #deployment_type=openshift-enterprise
 #openshift_pkg_version=-3.6.173.0.63
+osm_project_request_message=“To create a new project, contact your Team Admin.”
 
 osm_controller_args={'cloud-provider': ['azure'], 'cloud-config': ['/etc/azure/azure.conf']}
 osm_api_server_args={'cloud-provider': ['azure'], 'cloud-config': ['/etc/azure/azure.conf']}
