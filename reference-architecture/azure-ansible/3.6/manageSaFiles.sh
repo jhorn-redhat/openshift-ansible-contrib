@@ -29,6 +29,7 @@ function setup {
     az login 
   fi
 
+  subscription_cur=$(az account list -o table |awk '/True/ {print $3}')
   subscription_id=$(awk "/${AZ_SUB}/ {print \$3}"  ${tempFile})
   subscription_name=$(awk "/${AZ_SUB}/ {print \$1}" ${tempFile})
   az account set --subscription ${subscription_id}
@@ -67,3 +68,7 @@ fi
 
 echo "${CMD}ing"
 ${CMD}
+
+# set to previous subscripiont before exiting
+echo "Setting to previous subscription"
+az account set --subscription ${subscription_cur}

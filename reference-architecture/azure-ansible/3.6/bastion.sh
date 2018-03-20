@@ -50,9 +50,9 @@ export WILDCARDNIP=${WILDCARDIP}.nip.io
 export LOGGING_ES_INSTANCES="3"
 export OPSLOGGING_ES_INSTANCES="3"
 export METRICS_INSTANCES="1"
-export LOGGING_ES_SIZE="10"
+export LOGGING_ES_SIZE="500"
 export OPSLOGGING_ES_SIZE="10"
-export METRICS_CASSANDRASIZE="10"
+export METRICS_CASSANDRASIZE="200"
 export APIHOST=$RESOURCEGROUP.$FULLDOMAIN
 
 if [[ ${CUSTOMWILDCARD} != 'false' ]]; then
@@ -502,6 +502,18 @@ new_nodes
 new_masters
 
 [OSEv3:vars]
+# v3.7
+# fix for kb 3376031 bz1551862
+openshift_disable_check=package_version
+openshift_release=3.7
+deployment_type=openshift-enterprise
+openshift_rolling_restart_mode=system
+openshift_deployment_type=openshift-enterprise
+
+openshift_enable_service_catalog=true
+ansible_service_broker_install=false
+template_service_broker_install=false
+template_service_broker_selector=role=infra
 
 osm_controller_args={'cloud-provider': ['azure'], 'cloud-config': ['/etc/azure/azure.conf']}
 osm_api_server_args={'cloud-provider': ['azure'], 'cloud-config': ['/etc/azure/azure.conf']}
@@ -518,14 +530,12 @@ openshift_master_api_port="{{ console_port }}"
 openshift_master_console_port="{{ console_port }}"
 openshift_override_hostname_check=true
 osm_use_cockpit=false
-openshift_release=v3.6
 #openshift_pkg_version=-3.6.173.0.63
 openshift_cloudprovider_kind=azure
 openshift_node_local_quota_per_fsgroup=512Mi
 azure_resource_group=${RESOURCEGROUP}
 rhn_pool_id=${RHNPOOLID}
 openshift_install_examples=true
-deployment_type=openshift-enterprise
 openshift_master_identity_providers=$(echo $IDENTITYPROVIDERS | base64 --d)
 openshift_master_manage_htpasswd=false
 
@@ -602,6 +612,19 @@ openshift_logging_fluentd_nodeselector={"logging":"true"}
 openshift_logging_es_nodeselector={"role":"infra"}
 openshift_logging_kibana_nodeselector={"role":"infra"}
 openshift_logging_curator_nodeselector={"role":"infra"}
+# 3.7
+openshift_logging_es_pvc_storage_class_name=""
+
+# prometheus
+#openshift_prometheus_additional_rules_file
+openshift_prometheus_pvc_access_modes=ReadWriteOnce
+openshift_prometheus_pvc_size="100Gi"
+openshift_prometheus_storage_type=pvc
+openshift_prometheus_alertmanager_storage_type=pvc
+openshift_prometheus_alertmanager_pvc_name=alertmanager
+openshift_prometheus_alertbuffer_storage_type=pvc
+#openshift_prometheus_alertbuffer_pvc_size=10Gi
+openshift_prometheus_node_selector={"role":"infra"}
 
 openshift_logging_use_ops=false
 #openshift_logging_es_ops_pv_selector={"usage":"opselasticsearch"}
@@ -662,7 +685,7 @@ cat <<EOF > /home/${AUSERNAME}/subscribe.yml
     wait_for: path=/root/.updateok
 - hosts: all
   vars:
-    description: "Subscribe OCP"    
+    description: "Subscribe OCP"
     ocp_release: "{{ openshift_release }}"
   tasks:
   - name: check connection
@@ -673,16 +696,36 @@ cat <<EOF > /home/${AUSERNAME}/subscribe.yml
     file: path=/etc/yum.repos.d/rhui-load-balancers state=absent
   - name: remove the RHUI package
     yum: name=RHEL7 state=absent
+  - name: Allow rhsm a longer timeout to help out with subscription-manager
+    lineinfile:
+      dest: /etc/rhsm/rhsm.conf
+      line: 'server_timeout=600'
+      insertafter: '^proxy_password ='
   - name: Get rid of old subs
     shell: subscription-manager unregister
     ignore_errors: yes
+    register: remove_result
   - name: register hosts
 EOF
-if [[ $RHSMMODE == "usernamepassword" ]]
-then
-    echo "    shell: subscription-manager register --username=\"${RHNUSERNAME}\" --password=\"${RHNPASSWORD}\"" >> /home/${AUSERNAME}/subscribe.yml
+
+if [[ $RHSMMODE == "usernamepassword" ]]; then
+cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
+    redhat_subscription:
+      state: present
+      username: "${RHNUSERNAME}"
+      password: "${RHNPASSWORD}"
+      pool: "${RHNPOOLID}"
+      force_register: yes
+EOF
 else
-    echo "    shell: subscription-manager register --org=\"${RHNPASSWORD}\" --activationkey=\"${RHNUSERNAME}\"" >> /home/${AUSERNAME}/subscribe.yml
+cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
+    redhat_subscription:
+      state: present
+      activationkey: "${RHNUSERNAME}"
+      org_id: "${RHNPASSWORD}"
+      pool: "${RHNPOOLID}"
+      force_register: yes
+EOF
 fi
 cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
     register: task_result
@@ -701,21 +744,32 @@ then
     echo "    delay: 30" >> /home/${AUSERNAME}/subscribe.yml
     echo "    ignore_errors: yes" >> /home/${AUSERNAME}/subscribe.yml
 fi
+
 cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
   - name: disable all repos
     shell: subscription-manager repos --disable="*"
-  - name: enable rhel7 repo
-    shell: subscription-manager repos --enable="rhel-7-server-rpms"
-  - name: enable extras repos
-    shell: subscription-manager repos --enable="rhel-7-server-extras-rpms"
-  - name: enable fastpath repos
-    shell: subscription-manager repos --enable="rhel-7-fast-datapath-rpms"
-  - name: enable OCP repos
-    shell: subscription-manager repos --enable="rhel-7-server-ose-{{ ocp_release }}-rpms"
+    register: repo_result
+    until: repo_result | success
+    retries: 10
+    delay: 30
+  - name: enable repos
+    shell: subscription-manager repos --enable="rhel-7-server-rpms" \
+           --enable="rhel-7-server-extras-rpms" --enable="rhel-7-fast-datapath-rpms" \
+           --enable="rhel-7-server-ose-{{ ocp_release }}-rpms"
+    register: enable_result
+    until: enable_result | success
+    retries: 10
+    delay: 30
   - name: install the latest version of PyYAML
     yum: name=PyYAML state=latest
-  - name: Update all hosts"
-    yum: name="*" state=latest exclude="atomic-openshift,atomic-openshift-clients"
+  - name: Install the docker
+    yum: name=docker-1.12.6 state=present
+  - name: Update all hosts
+    yum: name="*" state=latest exclude='atomic-openshift,atomic-openshift-clients,docker*'
+    register: update_result
+    until: update_result | success
+    retries: 10
+    delay: 30
 
 EOF
 
@@ -768,6 +822,124 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
      when: docker_status|failed
 
 EOF
+
+
+cat <<EOF >> /home/${AUSERNAME}/upgrade.yml
+---
+- name: upgrade prep hosts file
+  hosts: localhost
+  become: true
+  vars:
+    openshift_release: "3.7"
+  tasks:
+    - debug: var=openshift_release
+
+    - name: "add variables for "
+      lineinfile:
+        #path: "./hosts"
+        path: "/etc/ansible/hosts"
+        state: "{{ item.state }}"
+        line: "{{ item.line }}"
+        insertafter: ".*OSEv3.*vars"
+        backup: yes
+      with_items:
+         - { state: 'present', line: 'openshift_rolling_restart_mode=system' }
+         - { state: 'present', line: 'openshift_enable_service_catalog=true' }
+         - { state: 'present', line: 'ansible_service_broker_install=false' }
+         - { state: 'present', line: 'template_service_broker_install=false' }
+         - { state: 'present', line: 'template_service_broker_selector=role=infra' }
+      tags: test
+
+    - name: "change variables for "
+      lineinfile:
+        path: "/etc/ansible/hosts"
+        state: "{{ item.state }}"
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        insertafter: ".*OSEv3.*vars"
+        backup: yes
+      with_items:
+         - { state: 'present', regexp: 'deployment_type=openshift-enterprise', line: 'openshift_deployment_type=openshift-enterprise' }
+         - { state: 'present', regexp: '^openshift_release', line: 'openshift_release={{ openshift_release }}' }
+      tags: test
+
+    - name: subscription-manager refresh
+      command: subscription-manager refresh
+
+    - name: Enable repos
+      command: 'subscription-manager repos --disable="rhel-7-server-ose-3.6-rpms" \
+    --enable="rhel-7-server-ose-{{ openshift_release }}-rpms" \
+    --enable="rhel-7-server-extras-rpms" \
+    --enable="rhel-7-fast-datapath-rpms"'
+
+    - name: Clean yum
+      command: yum clean all
+
+    - name: Install the OCP client
+      yum:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - atomic-openshift-utils
+        - atomic-openshift-clients
+
+- name: upgrade prep cluster
+  hosts: all
+  tasks:
+    - debug: var=openshift_release
+      tags: debug
+    - pause:
+    - name: subscription-manager refresh
+      command: subscription-manager refresh
+
+    - name: Enable repos
+      command: 'subscription-manager repos --disable="rhel-7-server-ose-3.6-rpms" \
+    --enable="rhel-7-server-ose-{{ openshift_release }}-rpms" \
+    --enable="rhel-7-server-extras-rpms" \
+    --enable="rhel-7-fast-datapath-rpms"'
+
+    - name: Clean yum
+      command: yum clean all
+
+    - name: Install the OCP client
+      yum:
+        name: atomic-openshift-clients
+        state: latest
+
+- name: upgrade prep masters
+  hosts: masters
+  become: true
+  tasks:
+    - name: copy kube config to root
+      copy:
+        src: ~/.kube/config
+        dest: /root/.kube/config
+
+- import_playbook:  /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-cluster/upgrades/v3_7/upgrade.yml
+
+# after upgrade the dns search domain is erased
+- name: update DNS search
+  hosts: all
+  tasks:
+    - name: set domain
+      shell: domainname -d
+      register: domain
+      tags: domain
+      run_once: true
+      delegate_to: localhost
+
+    - debug: var=domain.stdout
+      tags: domain
+      run_once: true
+      delegate_to: localhost
+
+    - name: update dns search domain
+      command: 'nmcli con modify eth0 ipv4.dns-search {{ domain.stdout }}'
+
+    - name: Update resolv conf
+      command: 'nmcli con up eth0'
+EOF
+
 
 cat <<EOF > /home/${AUSERNAME}/postinstall.yml
 ---
@@ -1647,10 +1819,12 @@ host_key_checking = False
 forks=30
 gather_timeout=60
 timeout=240
+callback_whitelist = profile_tasks, timer
 library = /usr/share/ansible:/usr/share/ansible/openshift-ansible/library
 [ssh_connection]
 control_path = ~/.ansible/cp/ssh%%h-%%p-%%r
 ssh_args = -o ControlMaster=auto -o ControlPersist=600s -o ControlPath=~/.ansible/cp-%h-%p-%r
+pipelining = True
 EOF
 chown ${AUSERNAME} /home/${AUSERNAME}/.ansible.cfg
 
@@ -1662,16 +1836,18 @@ host_key_checking = False
 forks=30
 gather_timeout=60
 timeout=240
+callback_whitelist = profile_tasks, timer
 library = /usr/share/ansible:/usr/share/ansible/openshift-ansible/library
 [ssh_connection]
 control_path = ~/.ansible/cp/ssh%%h-%%p-%%r
 ssh_args = -o ControlMaster=auto -o ControlPersist=600s -o ControlPath=~/.ansible/cp-%h-%p-%r
+pipelining = True
 EOF
 
 
 chmod 755 /home/${AUSERNAME}/openshift-install.sh
 chmod 755 /home/${AUSERNAME}/openshift-postinstall.sh
-oc create -f /home/${AUSERNAME}/scgeneric.yml
+#oc create -f /home/${AUSERNAME}/scgeneric.yml
 echo "${AUTOINSTALL}" > /home/${AUSERNAME}/.autoinstall
 
 if [[ ${AUTOINSTALL} != false ]]; then
