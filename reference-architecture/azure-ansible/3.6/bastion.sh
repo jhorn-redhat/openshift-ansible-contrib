@@ -594,7 +594,7 @@ openshift_master_cluster_hostname=${PUBLICHOSTNAME}
 openshift_master_cluster_public_hostname=${PUBLICHOSTNAME}
 
 # Do not install metrics but post install
-openshift_metrics_install_metrics=true
+openshift_metrics_install_metrics=false
 openshift_metrics_cassandra_storage_type=dynamic
 openshift_metrics_cassandra_pvc_size="${METRICS_CASSANDRASIZE}G"
 openshift_metrics_cassandra_replicas="${METRICS_INSTANCES}"
@@ -603,7 +603,7 @@ openshift_metrics_cassandra_nodeselector={"role":"infra"}
 openshift_metrics_heapster_nodeselector={"role":"infra"}
 
 # Do not install logging but post install
-openshift_logging_install_logging=true
+openshift_logging_install_logging=false
 openshift_logging_master_public_url=https://${PUBLICHOSTNAME}
 #openshift_logging_es_pv_selector={"usage":"elasticsearch"}
 openshift_logging_es_pvc_dynamic="true"
@@ -613,6 +613,8 @@ openshift_logging_fluentd_nodeselector={"logging":"true"}
 openshift_logging_es_nodeselector={"role":"infra"}
 openshift_logging_kibana_nodeselector={"role":"infra"}
 openshift_logging_curator_nodeselector={"role":"infra"}
+# v3.7
+openshift_logging_es_pvc_storage_class_name=""
 
 # prometheus
 #openshift_prometheus_additional_rules_file
