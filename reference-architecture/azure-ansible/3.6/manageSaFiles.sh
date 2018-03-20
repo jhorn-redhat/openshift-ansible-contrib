@@ -29,8 +29,10 @@ function setup {
     az login 
   fi
 
+  subscription_cur=$(az account list -o table |awk '/True/ {print $3}')
   subscription_id=$(awk "/${AZ_SUB}/ {print \$3}"  ${tempFile})
   subscription_name=$(awk "/${AZ_SUB}/ {print \$1}" ${tempFile})
+  # make sure to set to back to previous subscription
   az account set --subscription ${subscription_id}
   AZ_STORAGE_ACCESS_KEY=$(az storage account keys list -g ${RESOURCE_GROUP} -n ${STORAGE_ACCOUNT} -o table | awk '/key1/ {print $3}')
   export AZURE_STORAGE_ACCESS_KEY=${AZ_STORAGE_ACCESS_KEY}
@@ -59,3 +61,7 @@ elif  [[ $1 =~ delete|upload ]]; then
   echo "${CMD}ing"
   ${CMD}
 fi
+
+# set to previous subscripiont before exiting
+echo "Setting to previous subscription"
+az account set --subscription ${subscription_cur}
