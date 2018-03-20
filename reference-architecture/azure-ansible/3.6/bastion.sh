@@ -531,7 +531,7 @@ openshift_release=3.7
 openshift_deployment_type=openshift-enterprise
 # old
 #deployment_type=openshift-enterprise
-osm_project_request_message='osm_project_request_message'
+osm_project_request_message=“To create a new project, contact your Team Admin.”
 
 openshift_master_identity_providers=$(echo $IDENTITYPROVIDERS | base64 --d)
 openshift_master_manage_htpasswd=false
