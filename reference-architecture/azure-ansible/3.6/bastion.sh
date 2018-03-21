@@ -672,7 +672,7 @@ done
 # FIX: if specifying specific version openshift_pkg_version
 #      this will enable the installation of atomic-openshift{{ openshift_pkg_version }}
 #      in subscribe.yml below
-if [[ ! $(grep -q openshift_pkg_version /etc/ansible/hosts) ]];then 
+if [[ ! $(grep -q ^openshift_pkg_version /etc/ansible/hosts) ]];then 
   pkg_version=$(awk -F'=' '/^openshift_pkg_version/ {print $2}'  /etc/ansible/hosts)
   echo "FOUND: openshift_pkg_version ${pkg_version}"
 fi
