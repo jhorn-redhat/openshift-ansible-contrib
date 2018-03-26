@@ -334,6 +334,13 @@
 				"description": "Pool ID of the Red Hat subscritpion to use"
 			}
 		},
+		"SubscriptionPoolIdBroker": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "Pool ID of the Red Hat BROKER subscritpion to use, Defaults to rhnpoolid"
+			}
+		},
 		"aadClientId": {
 			"type": "string",
 			"metadata": {
@@ -390,7 +397,7 @@
 		"gituser": "jhorn-redhat",
 		"branch": "master",
 		"version": "3.6",
-		"baseTemplateUrl": "https://openshiftrefarch.blob.core.windows.net/ocp-lab/",
+		"baseTemplateUrl": "https://openshiftrefarch.blob.core.windows.net/ocp-jth/",
 		"baseVMachineTemplateUriInfranode": "[concat(variables('baseTemplateUrl'), 'infranode.json')]",
 		"baseVMachineTemplateUriNode": "[concat(variables('baseTemplateUrl'), 'node.json')]",
 		"baseVMachineTemplateUriMaster": "[concat(variables('baseTemplateUrl'), 'master.json')]",
@@ -398,14 +405,14 @@
 		"location": "[resourceGroup().location]",
                 "osm_cluster_network_cidr": "10.29.0.0/16",
                 "openshift_portal_net": "10.28.0.0/16",
-                "virtualNetworkName": "lab-spec-westus-rg",
-                "addressPrefix": "10.8.145.96/27",
+                "virtualNetworkName": "jthtest",
+                "addressPrefix": "10.1.0.0/24",
                 "infranodesubnetName": "infranode",
-                "infranodesubnetPrefix": "10.8.145.112/29",
+                "infranodesubnetPrefix": "10.1.0.16/28",
                 "nodesubnetName": "node",
-                "nodesubnetPrefix": "10.8.145.120/29",
+                "nodesubnetPrefix": "10.1.0.32/28",
                 "mastersubnetName": "master",
-                "mastersubnetPrefix": "10.8.145.96/28",
+                "mastersubnetPrefix": "10.1.0.0/28",
 		"infranodeStorageName": "[concat('sainf', variables('groupName'))]",
 		"nodeStorageName": "[concat('sanod',variables('groupName'))]",
 		"masterStorageName": "[concat('samas', variables('groupName'))]",
@@ -760,6 +767,9 @@
 					},
 					"SubscriptionPoolId": {
 						"value": "[parameters('SubscriptionPoolId')]"
+					},
+					"SubscriptionPoolIdBroker": {
+						"value": "[parameters('SubscriptionPoolIdBroker')]"
 					},
 					"sshPrivateData": {
 						"value": "[parameters('sshPrivateData')]"

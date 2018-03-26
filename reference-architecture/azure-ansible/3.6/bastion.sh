@@ -11,37 +11,38 @@ export NODECOUNT=$6
 export ROUTEREXTIP=$7
 export RHNUSERNAME=$8
 export RHNPASSWORD=$9
-export RHNPOOLID=${10}
-export SSHPRIVATEDATA=${11}
-export SSHPUBLICDATA=${12}
-export SSHPUBLICDATA2=${13}
-export SSHPUBLICDATA3=${14}
-export REGISTRYSTORAGENAME=${array[14]}
-export REGISTRYKEY=${array[15]}
-export LOCATION=${array[16]}
-export SUBSCRIPTIONID=${array[17]}
-export TENANTID=${array[18]}
-export AADCLIENTID=${array[19]}
-export AADCLIENTSECRET=${array[20]}
-export RHSMMODE=${array[21]}
-export OPENSHIFTSDN=${array[22]}
-export METRICS=${array[23]}
-export LOGGING=${array[24]}
-export OPSLOGGING=${array[25]}
-export GITURL=${array[26]}
-export CUSTOMWILDCARD=${array[27]}
-export CUSTOMPUBLICHOSTNAME=${array[28]}
-export PORTALNET=${array[29]}
-export CLUSTERNET=${array[30]}
-export MASTERKEY=${array[31]}
-export MASTERCERT=${array[32]}
-export MASTERCA=${array[33]}
-export ROUTERKEY=${array[34]}
-export ROUTERCERT=${array[35]}
-export ROUTERCA=${array[36]}
-export CUSTOMDNS=${array[37]}
-export AUTOINSTALL=${array[38]}
-export IDENTITYPROVIDERS=${array[39]}
+export RHNPOOLID_BROKER=${10}
+export RHNPOOLID=${11}
+export SSHPRIVATEDATA=${12}
+export SSHPUBLICDATA=${13}
+export SSHPUBLICDATA2=${14}
+export SSHPUBLICDATA3=${15}
+export REGISTRYSTORAGENAME=${array[15]}
+export REGISTRYKEY=${array[16]}
+export LOCATION=${array[17]}
+export SUBSCRIPTIONID=${array[18]}
+export TENANTID=${array[19]}
+export AADCLIENTID=${array[20]}
+export AADCLIENTSECRET=${array[21]}
+export RHSMMODE=${array[22]}
+export OPENSHIFTSDN=${array[23]}
+export METRICS=${array[24]}
+export LOGGING=${array[25]}
+export OPSLOGGING=${array[26]}
+export GITURL=${array[27]}
+export CUSTOMWILDCARD=${array[28]}
+export CUSTOMPUBLICHOSTNAME=${array[29]}
+export PORTALNET=${array[30]}
+export CLUSTERNET=${array[31]}
+export MASTERKEY=${array[32]}
+export MASTERCERT=${array[33]}
+export MASTERCA=${array[34]}
+export ROUTERKEY=${array[35]}
+export ROUTERCERT=${array[36]}
+export ROUTERCA=${array[37]}
+export CUSTOMDNS=${array[38]}
+export AUTOINSTALL=${array[39]}
+export IDENTITYPROVIDERS=${array[40]}
 export FULLDOMAIN=${THEHOSTNAME#*.*}
 # for lab / dev + spec for prod remove spec
 export WILDCARDFQDN=${WILDCARDZONE}spec.${FULLDOMAIN}
@@ -217,10 +218,11 @@ then
 else
    subscription-manager register --org="${RHNPASSWORD}" --activationkey="${RHNUSERNAME}"
 fi
-subscription-manager attach --pool=$RHNPOOLID
+subscription-manager remove --all
+subscription-manager attach --pool=${RHNPOOLID_BROKER}
 subscription-manager repos --disable="*"
 subscription-manager repos --enable="rhel-7-server-rpms" --enable="rhel-7-server-extras-rpms" --enable="rhel-7-fast-datapath-rpms"
-subscription-manager repos --enable="rhel-7-server-ose-3.6-rpms"
+subscription-manager repos --enable="rhel-7-server-ose-3.7-rpms"
 yum -y install atomic-openshift-utils git net-tools bind-utils iptables-services bridge-utils bash-completion httpd-tools nodejs qemu-img
 yum -y install --enablerepo="epel" jq
 touch /root/.updateok
@@ -508,10 +510,10 @@ openshift_deployment_type=openshift-enterprise
 # fix for kb 3376031 bz1551862
 openshift_disable_check=package_version
 # Service Broker
-openshift_enable_service_catalog=true
+openshift_enable_service_catalog=false
 ansible_service_broker_install=false
 template_service_broker_install=false
-template_service_broker_selector=role=infra
+template_service_broker_selector={"role":"infra"}
 openshift_rolling_restart_mode=system
 
 #3.6 uses deployment_type
@@ -673,7 +675,7 @@ done
 # FIX: if specifying specific version openshift_pkg_version
 #      this will enable the installation of atomic-openshift{{ openshift_pkg_version }}
 #      in subscribe.yml below
-if [[ ! $(grep -q openshift_pkg_version /etc/ansible/hosts) ]];then 
+if [[  $(grep -q ^openshift_pkg_version /etc/ansible/hosts;echo $?) == 0 ]];then
   pkg_version=$(awk -F'=' '/^openshift_pkg_version/ {print $2}'  /etc/ansible/hosts)
   echo "FOUND: openshift_pkg_version ${pkg_version}"
 fi
@@ -693,21 +695,27 @@ cat <<EOF > /home/${AUSERNAME}/subscribe.yml
   tasks:
   - name: check connection
     ping:
+
   - name: Get rid of RHUI repos
     file: path=/etc/yum.repos.d/rh-cloud.repo state=absent
+
   - name: Get rid of RHUI load balancers
     file: path=/etc/yum.repos.d/rhui-load-balancers state=absent
+
   - name: remove the RHUI package
     yum: name=RHEL7 state=absent
+
   - name: Allow rhsm a longer timeout to help out with subscription-manager
     lineinfile:
       dest: /etc/rhsm/rhsm.conf
       line: 'server_timeout=600'
       insertafter: '^proxy_password ='
+
   - name: Get rid of old subs
     shell: subscription-manager unregister
     ignore_errors: yes
-  - name: register hosts
+
+  - name: register hosts | Master and Infra subs only
 EOF
 if [[ $RHSMMODE == "usernamepassword" ]]; then
 cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
@@ -715,8 +723,14 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
       state: present
       username: "${RHNUSERNAME}"
       password: "${RHNPASSWORD}"
-      pool: "${RHNPOOLID}"
+      pool: "${RHNPOOLID_BROKER}"
       force_register: yes
+    register: task_result
+    until: task_result | success
+    retries: 10
+    delay: 30
+    ignore_errors: yes
+    when:  '"master" in inventory_hostname or "infra"  in inventory_hostname'
 EOF
 else
 cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
@@ -724,16 +738,29 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
       state: present
       activationkey: "${RHNUSERNAME}"
       org_id: "${RHNPASSWORD}"
-      pool: "${RHNPOOLID}"
+      pool: "${RHNPOOLID_BROKER}"
       force_register: yes
-EOF
-fi
-cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
     register: task_result
     until: task_result | success
     retries: 10
     delay: 30
     ignore_errors: yes
+    when:  '"master" in inventory_hostname or "infra"  in inventory_hostname'
+EOF
+fi
+
+# Remove worker node subscription from masters/infra nodes
+cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
+
+  - name: remove pool id | Master and Infra subscription only
+    shell: subscription-manager remove --pool "${RHNPOOLID}"
+    ignore_errors: yes
+    when:  '"master" in inventory_hostname or "infra"  in inventory_hostname'
+
+EOF
+
+cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
+
 EOF
 if [[ $RHSMMODE == "usernamepassword" ]]
 then
@@ -744,7 +771,28 @@ then
     echo "    retries: 10" >> /home/${AUSERNAME}/subscribe.yml
     echo "    delay: 30" >> /home/${AUSERNAME}/subscribe.yml
     echo "    ignore_errors: yes" >> /home/${AUSERNAME}/subscribe.yml
+else
+# Register Worker Nodes
+cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
+
+  - name: register hosts | node subscription only
+    redhat_subscription:
+      state: present
+      activationkey: "${RHNUSERNAME}"
+      org_id: "${RHNPASSWORD}"
+      force_register: yes
+    register: task_result
+    until: task_result | success
+    retries: 10
+    delay: 30
+    ignore_errors: yes
+    when:
+      - '"master" not in inventory_hostname'
+      - '"infra" not in inventory_hostname'
+
+EOF
 fi
+
 cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
   - name: disable all repos
     shell: subscription-manager repos --disable="*"
@@ -752,6 +800,7 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
     until: repo_result | success
     retries: 10
     delay: 30
+
   - name: enable repos
     shell: subscription-manager repos --enable="rhel-7-server-rpms" \
            --enable="rhel-7-server-extras-rpms" --enable="rhel-7-fast-datapath-rpms" \
@@ -760,10 +809,13 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
     until: enable_result | success
     retries: 10
     delay: 30
+
   - name: install the latest version of PyYAML
     yum: name=PyYAML state=latest
+
   - name: Install the docker
     yum: name=docker-1.12.6 state=present
+
   - name: Update all hosts
     yum: name="*" state=latest exclude='atomic-openshift,atomic-openshift-clients,docker*'
     register: update_result
@@ -777,16 +829,19 @@ if [[ ${pkg_version} != "" ]]
 then
     echo "  - name: Install the OCP client" >> /home/${AUSERNAME}/subscribe.yml
     echo "    yum: name=atomic-openshift-clients${pkg_version} state=present" >> /home/${AUSERNAME}/subscribe.yml
+    echo >> /home/${AUSERNAME}/subscribe.yml
     echo "  - name: Install atomic-openshift${pkg_version}"                 >> /home/${AUSERNAME}/subscribe.yml
     echo "    yum: name=atomic-openshift${pkg_version} state=present"       >> /home/${AUSERNAME}/subscribe.yml
 else
     echo "  - name: Install the OCP client" >> /home/${AUSERNAME}/subscribe.yml
     echo "    yum: name=atomic-openshift-clients state=latest" >> /home/${AUSERNAME}/subscribe.yml
+    echo >> /home/${AUSERNAME}/subscribe.yml
     echo "  - name: Install atomic-openshift"                 >> /home/${AUSERNAME}/subscribe.yml
     echo "    yum: name=atomic-openshift state=latest"       >> /home/${AUSERNAME}/subscribe.yml
 fi
 
 cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
+
   - name: Install the docker
     yum: name=docker state=latest
   - name: Start Docker
@@ -797,7 +852,7 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
     register: docker_status 
 
   - name: Restart host
-     block:
+    block:
      - name: Reboot node
        command: shutdown -r +1
        async: 600
@@ -819,7 +874,7 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
  
      - name: Wait for Things to Settle
        pause: minutes=2
-     when: docker_status|failed
+    when: docker_status|failed
 
 EOF
 
@@ -1595,16 +1650,6 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 sleep 120
 ansible all --module-name=ping > ansible-preinstall-ping.out || true
 
-EOF
-
-if [[ ${CUSTOMDNS} != "false" ]];then
-  echo "# setup dnsmasq on bastion" >> /home/${AUSERNAME}/openshift-install.sh
-  echo "ansible-playbook /home/${AUSERNAME}/bastion-dnsmasq.yml" >> /home/${AUSERNAME}/openshift-install.sh
-  echo "# setup custom dnsmasq domain" >> /home/${AUSERNAME}/openshift-install.sh
-  echo "ansible-playbook /home/${AUSERNAME}/custom-dnsmasq-domain.yml" >> /home/${AUSERNAME}/openshift-install.sh
-fi
-
-cat <<EOF >> /home/${AUSERNAME}/openshift-install.sh
 
 ansible-playbook  /home/${AUSERNAME}/subscribe.yml
 ansible-playbook  /home/${AUSERNAME}/azure-config.yml
@@ -1616,7 +1661,17 @@ wget http://master1:443/api > healtcheck.out
 ansible all -b -m command -a "nmcli con modify eth0 ipv4.dns-search $(domainname -d)"
 ansible all -b -m service -a "name=NetworkManager state=restarted"
 
+EOF
 
+if [[ ${CUSTOMDNS} != "false" ]];then
+  echo "# setup dnsmasq on bastion" >> /home/${AUSERNAME}/openshift-install.sh
+  echo "ansible-playbook /home/${AUSERNAME}/bastion-dnsmasq.yml" >> /home/${AUSERNAME}/openshift-install.sh
+  echo "# setup custom dnsmasq domain" >> /home/${AUSERNAME}/openshift-install.sh
+  echo "ansible-playbook /home/${AUSERNAME}/custom-dnsmasq-domain.yml" >> /home/${AUSERNAME}/openshift-install.sh
+fi
+
+
+cat <<EOF >> /home/${AUSERNAME}/openshift-install.sh
 
 ansible-playbook  /home/${AUSERNAME}/setup-azure-node.yml
 
@@ -1692,7 +1747,13 @@ fi
 #      oc patch pv/loggingopspv-\${i} -p '{"metadata":{"labels":{"usage":"opselasticsearch"}}}'
 #    done
 #  fi
-  ansible-playbook -e "openshift_logging_install_logging=\${DEPLOYLOGGING} openshift_logging_use_ops=\${DEPLOYOPSLOGGING}" /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-cluster/openshift-logging.yml
+# https://bugzilla.redhat.com/show_bug.cgi?id=1544243
+# Pass with openshift-ansible:v3.7.36.
+# logging_elasticsearch_rollout_override=True
+  ansible-playbook -e "openshift_logging_install_logging=\${DEPLOYLOGGING} openshift_logging_use_ops=\${DEPLOYOPSLOGGING}" -e logging_elasticsearch_rollout_override=True /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-cluster/openshift-logging.yml
+
+# Service catalog
+ansible-playbook -e openshift_enable_service_catalog=True -e template_service_broker_install=True /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-cluster/service-catalog.yml
 #fi
 
 EOF
@@ -1789,8 +1850,6 @@ EOF
 chmod 755 /home/${AUSERNAME}/openshift-install.sh
 chmod 755 /home/${AUSERNAME}/openshift-postinstall.sh
 #oc create -f /home/${AUSERNAME}/scgeneric.yml
-echo "${AUTOINSTALL}" > /home/${AUSERNAME}/.autoinstall
-
 if [[ ${AUTOINSTALL} != false ]]; then
   cd /home/${AUSERNAME}
   echo "${RESOURCEGROUP} Bastion Host is starting OpenShift Install" | mail -s "${RESOURCEGROUP} Bastion OpenShift Install Starting" ${RHNUSERNAME} || true

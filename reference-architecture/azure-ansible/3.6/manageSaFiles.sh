@@ -3,18 +3,18 @@
 # Azure Subscription to use
 AZ_SUB="SPEC.DEV"
 # Resource group for blob container
-RESOURCE_GROUP="openshift-rg"
+RESOURCE_GROUP="spec-platform"
 # Storage Account for blob container 
 STORAGE_ACCOUNT="openshiftrefarch"
-STORAGE_CONTAINER="ocp-lab"
+STORAGE_CONTAINER="ocp-jth"
 # Template that contains variables pointing to this container
 ARM_TEMPLATE="azuredeploy.json.sa"
 FILES="${ARM_TEMPLATE}  azuredeploy.parameters.json bastion.json bastion.sh infranode.json master.json master.sh node.sh node.json"
 
 
 function usage {
-  echo "Error: Requires 3 args"
-  echo -e "Usage: $0 [azure login] [azure password] [upload|delete]"
+  echo "Error: Requires 1 args"
+  echo -e "Usage: $0 [upload|delete]"
   exit 1
 }
 
@@ -53,22 +53,18 @@ function delete() {
   done
 }
 
-if [[ $# < 2 ]]; then
-  usage
-else
-  az_name=${1}
+#if [[ $# < 1 ]]; then
+#  usage
+#elif  [[ $1 =~ delete|upload ]]; then
+if  [[ $1 =~ delete|upload ]]; then
   setup
-fi
-
-if  [[ $2 =~ delete|upload ]]; then
-  CMD=$2
+  CMD=$1
+  echo "${CMD}ing"
+  ${CMD}
+  # set to previous subscripiont before exiting
+  echo "Setting to previous subscription"
+  az account set --subscription ${subscription_cur}
 else
   usage
 fi
 
-echo "${CMD}ing"
-${CMD}
-
-# set to previous subscripiont before exiting
-echo "Setting to previous subscription"
-az account set --subscription ${subscription_cur}
