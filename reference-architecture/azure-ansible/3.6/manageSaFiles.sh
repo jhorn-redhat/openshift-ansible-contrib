@@ -6,7 +6,7 @@ AZ_SUB="SPEC.DEV"
 RESOURCE_GROUP="spec-platform"
 # Storage Account for blob container 
 STORAGE_ACCOUNT="openshiftrefarch"
-STORAGE_CONTAINER="ocp-jth"
+STORAGE_CONTAINER="ocp-lab"
 # Template that contains variables pointing to this container
 ARM_TEMPLATE="azuredeploy.json.sa"
 FILES="${ARM_TEMPLATE}  azuredeploy.parameters.json bastion.json bastion.sh infranode.json master.json master.sh node.sh node.json"
