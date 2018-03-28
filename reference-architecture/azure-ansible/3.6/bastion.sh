@@ -51,9 +51,9 @@ export WILDCARDNIP=${WILDCARDIP}.nip.io
 export LOGGING_ES_INSTANCES="3"
 export OPSLOGGING_ES_INSTANCES="3"
 export METRICS_INSTANCES="1"
-export LOGGING_ES_SIZE="10"
+export LOGGING_ES_SIZE="500"
 export OPSLOGGING_ES_SIZE="10"
-export METRICS_CASSANDRASIZE="10"
+export METRICS_CASSANDRASIZE="200"
 export APIHOST=$RESOURCEGROUP.$FULLDOMAIN
 
 if [[ ${CUSTOMWILDCARD} != 'false' ]]; then
@@ -218,8 +218,8 @@ then
 else
    subscription-manager register --org="${RHNPASSWORD}" --activationkey="${RHNUSERNAME}"
 fi
-subscription-manager remove --all
-subscription-manager attach --pool=${RHNPOOLID_BROKER}
++subscription-manager remove --all
++subscription-manager attach --pool=${RHNPOOLID_BROKER}
 subscription-manager repos --disable="*"
 subscription-manager repos --enable="rhel-7-server-rpms" --enable="rhel-7-server-extras-rpms" --enable="rhel-7-fast-datapath-rpms"
 subscription-manager repos --enable="rhel-7-server-ose-3.7-rpms"
@@ -504,21 +504,19 @@ new_nodes
 new_masters
 
 [OSEv3:vars]
-# 3.7
-openshift_release=3.7
-openshift_deployment_type=openshift-enterprise
+# v3.7
 # fix for kb 3376031 bz1551862
 openshift_disable_check=package_version
-# Service Broker
+openshift_release=3.7
+deployment_type=openshift-enterprise
+openshift_rolling_restart_mode=system
+openshift_deployment_type=openshift-enterprise
+
 openshift_enable_service_catalog=false
 ansible_service_broker_install=false
 template_service_broker_install=false
 template_service_broker_selector={"role":"infra"}
-openshift_rolling_restart_mode=system
 
-#3.6 uses deployment_type
-#deployment_type=openshift-enterprise
-#openshift_pkg_version=-3.6.173.0.63
 osm_project_request_message=“To create a new project, contact your Team Admin.”
 
 osm_controller_args={'cloud-provider': ['azure'], 'cloud-config': ['/etc/azure/azure.conf']}
@@ -536,6 +534,7 @@ openshift_master_api_port="{{ console_port }}"
 openshift_master_console_port="{{ console_port }}"
 openshift_override_hostname_check=true
 osm_use_cockpit=false
+#openshift_pkg_version=-3.6.173.0.63
 openshift_cloudprovider_kind=azure
 openshift_node_local_quota_per_fsgroup=512Mi
 azure_resource_group=${RESOURCEGROUP}
@@ -598,7 +597,7 @@ openshift_master_cluster_hostname=${PUBLICHOSTNAME}
 openshift_master_cluster_public_hostname=${PUBLICHOSTNAME}
 
 # Do not install metrics but post install
-openshift_metrics_install_metrics=false
+openshift_metrics_install_metrics=true
 openshift_metrics_cassandra_storage_type=dynamic
 openshift_metrics_cassandra_pvc_size="${METRICS_CASSANDRASIZE}G"
 openshift_metrics_cassandra_replicas="${METRICS_INSTANCES}"
@@ -607,7 +606,7 @@ openshift_metrics_cassandra_nodeselector={"role":"infra"}
 openshift_metrics_heapster_nodeselector={"role":"infra"}
 
 # Do not install logging but post install
-openshift_logging_install_logging=false
+openshift_logging_install_logging=true
 openshift_logging_master_public_url=https://${PUBLICHOSTNAME}
 #openshift_logging_es_pv_selector={"usage":"elasticsearch"}
 openshift_logging_es_pvc_dynamic="true"
@@ -617,7 +616,7 @@ openshift_logging_fluentd_nodeselector={"logging":"true"}
 openshift_logging_es_nodeselector={"role":"infra"}
 openshift_logging_kibana_nodeselector={"role":"infra"}
 openshift_logging_curator_nodeselector={"role":"infra"}
-# v3.7
+# 3.7
 openshift_logging_es_pvc_storage_class_name=""
 
 # prometheus
@@ -675,11 +674,10 @@ done
 # FIX: if specifying specific version openshift_pkg_version
 #      this will enable the installation of atomic-openshift{{ openshift_pkg_version }}
 #      in subscribe.yml below
-if [[  $(grep -q ^openshift_pkg_version /etc/ansible/hosts;echo $?) == 0 ]];then
+if [[  $(grep -q ^openshift_pkg_version /etc/ansible/hosts; echo $?) == 0 ]];then 
   pkg_version=$(awk -F'=' '/^openshift_pkg_version/ {print $2}'  /etc/ansible/hosts)
   echo "FOUND: openshift_pkg_version ${pkg_version}"
 fi
-
 cat <<EOF > /home/${AUSERNAME}/subscribe.yml
 ---
 - hosts: all
@@ -690,7 +688,7 @@ cat <<EOF > /home/${AUSERNAME}/subscribe.yml
     wait_for: path=/root/.updateok
 - hosts: all
   vars:
-    description: "Subscribe OCP"    
+    description: "Subscribe OCP"
     ocp_release: "{{ openshift_release }}"
   tasks:
   - name: check connection
@@ -849,7 +847,8 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
       name: docker
       enabled: yes
       state: started
-    register: docker_status 
+    register: docker_status
+    ignore_errors: yes
 
   - name: Restart host
     block:
@@ -858,7 +857,7 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
        async: 600
        poll: 0
        when: docker_status|failed
- 
+
      - name: Wait for node to come back
        local_action: wait_for
        args:
@@ -871,7 +870,7 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
          delay: 70
          timeout: 600
        register: wait_for_reboot
- 
+
      - name: Wait for Things to Settle
        pause: minutes=2
     when: docker_status|failed
@@ -994,7 +993,7 @@ cat <<EOF >> /home/${AUSERNAME}/upgrade.yml
       command: 'nmcli con up eth0'
 EOF
 
-                                                                                                                       816,1    
+
 cat <<EOF > /home/${AUSERNAME}/postinstall.yml
 ---
 - hosts: masters
@@ -1456,9 +1455,6 @@ add_node_openshift(){
   echo "Adding the node to the ansible inventory..."
   sudo sed -i "/^\${VMNAME}.*/d" /etc/ansible/hosts
   sudo sed -i "/\[nodes\]/a \${VMNAME} openshift_hostname=\${VMNAME} openshift_node_labels=\"{'role':'\${ROLE}','zone':'default','logging':'true'}\"" /etc/ansible/hosts
-  ansible -l \${VMNAME} -b -m command -a "nmcli con modify eth0 ipv4.dns-search $(domainname -d)"
-  ansible -l \${VMNAME} -b -m service -a "nmcli con up eth0"
-
   # setup custom dnsmasq domain
   ansible-playbook -l \${VMNAME}  /home/honeywell/custom-dnsmasq-domain.yml
 
@@ -1496,6 +1492,8 @@ add_master_openshift(){
   sudo sed -i "/^\${VMNAME}.*/d" /etc/ansible/hosts
   sudo sed -i "/\[masters\]/a \${VMNAME} openshift_hostname=\${VMNAME} openshift_node_labels=\"{'role': '\${ROLE}'}\"" /etc/ansible/hosts
   sudo sed -i "/\[nodes\]/a \${VMNAME} openshift_hostname=\${VMNAME} openshift_node_labels=\"{'role':'\${ROLE}','zone':'default','logging':'true'}\" openshift_schedulable=false" /etc/ansible/hosts
+  ansible -l \${VMNAME} -b -m command -a "nmcli con modify eth0 ipv4.dns-search $(domainname -d)"
+  ansible -l \${VMNAME} -b -m service -a "nmcli con up eth0"
   # setup custom dnsmasq domain
   ansible-playbook -l \${VMNAME}  /home/honeywell/custom-dnsmasq-domain.yml
   ansible-playbook  /home/honeywell/setup-azure-node.yml
@@ -1650,7 +1648,6 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 sleep 120
 ansible all --module-name=ping > ansible-preinstall-ping.out || true
 
-
 ansible-playbook  /home/${AUSERNAME}/subscribe.yml
 ansible-playbook  /home/${AUSERNAME}/azure-config.yml
 echo "${RESOURCEGROUP} Bastion Host is starting ansible BYO" | mail -s "${RESOURCEGROUP} Bastion BYO Install" ${RHNUSERNAME} || true
@@ -1669,7 +1666,6 @@ if [[ ${CUSTOMDNS} != "false" ]];then
   echo "# setup custom dnsmasq domain" >> /home/${AUSERNAME}/openshift-install.sh
   echo "ansible-playbook /home/${AUSERNAME}/custom-dnsmasq-domain.yml" >> /home/${AUSERNAME}/openshift-install.sh
 fi
-
 
 cat <<EOF >> /home/${AUSERNAME}/openshift-install.sh
 
@@ -1751,7 +1747,7 @@ fi
 # Pass with openshift-ansible:v3.7.36.
 # logging_elasticsearch_rollout_override=True
   ansible-playbook -e "openshift_logging_install_logging=\${DEPLOYLOGGING} openshift_logging_use_ops=\${DEPLOYOPSLOGGING}" -e logging_elasticsearch_rollout_override=True /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-cluster/openshift-logging.yml
-
++
 # Service catalog
 ansible-playbook -e openshift_enable_service_catalog=True -e template_service_broker_install=True /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-cluster/service-catalog.yml
 #fi
@@ -1821,8 +1817,8 @@ host_key_checking = False
 forks=30
 gather_timeout=60
 timeout=240
-library = /usr/share/ansible:/usr/share/ansible/openshift-ansible/library
 callback_whitelist = profile_tasks, timer
+library = /usr/share/ansible:/usr/share/ansible/openshift-ansible/library
 [ssh_connection]
 control_path = ~/.ansible/cp/ssh%%h-%%p-%%r
 ssh_args = -o ControlMaster=auto -o ControlPersist=600s -o ControlPath=~/.ansible/cp-%h-%p-%r
@@ -1850,6 +1846,8 @@ EOF
 chmod 755 /home/${AUSERNAME}/openshift-install.sh
 chmod 755 /home/${AUSERNAME}/openshift-postinstall.sh
 #oc create -f /home/${AUSERNAME}/scgeneric.yml
+echo "${AUTOINSTALL}" > /home/${AUSERNAME}/.autoinstall
+
 if [[ ${AUTOINSTALL} != false ]]; then
   cd /home/${AUSERNAME}
   echo "${RESOURCEGROUP} Bastion Host is starting OpenShift Install" | mail -s "${RESOURCEGROUP} Bastion OpenShift Install Starting" ${RHNUSERNAME} || true
