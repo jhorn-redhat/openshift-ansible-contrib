@@ -1455,8 +1455,13 @@ add_node_openshift(){
   echo "Scaling up the node..."
   ansible-playbook /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-node/scaleup.yml
   echo "Adding the node to the ansible inventory..."
+  ansible new_nodes -b -m command -a "nmcli con modify eth0 ipv4.dns-search $(domainname -d)"
+  ansible new_nodes -b -a "nmcli con up eth0"
+  # setup custom dnsmasq domain
+  ansible-playbook -l \${VMNAME}  /home/honeywell/custom-dnsmasq-domain.yml
   sudo sed -i "/^\${VMNAME}.*/d" /etc/ansible/hosts
   sudo sed -i "/\[nodes\]/a \${VMNAME} openshift_hostname=\${VMNAME} openshift_node_labels=\"{'role':'\${ROLE}','zone':'default','logging':'true'}\"" /etc/ansible/hosts
+  ansible-playbook -l \${VMNAME} /home/honeywell/setup-azure-node.yml
 }
 
 add_master_openshift(){
