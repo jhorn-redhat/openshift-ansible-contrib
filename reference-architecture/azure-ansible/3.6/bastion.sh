@@ -112,6 +112,34 @@ chmod 644 /home/octopus/.ssh/authorized_keys
 chown -R  octopus:octopus /home/octopus
 chown -R  bamboo:bamboo /home/bamboo
 ###
+
+# add other local user accounts
+for USER in clasohm jhorn jmcdonough tuttle; do
+    useradd -G wheel $USER
+    mkdir -m 700 /home/$USER/.ssh
+done
+
+cat >/home/clasohm/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAtENPMx0/h3RyvlPGeuWPM/g08D1DE0D914XMcIvYdR6ryD+gpMoRTfTMkIHmiaSNe1+Dd1yYzaT6CvWNZ0kyfLA9VKaVkqut7yWagaZOC8vBUKx2vUpJkw9OjeW+X9KDmTgaGnbc4eQm/ey+XPLRmwBLrxvtJ5dTLVrD3L6KQ/9HSPx898V+PmqSE9S+5hDXBpbA5r2R0DPlo0yFkaOJEaJ+BFZbcqX40t+MMRFdnPAS45BgSW1fqD3bDFXkzsdTOq3C7Z5ihCWMFcPxL0Ifp3o/LWEHRVh7N/rilZko+B/o3OP0iFHsIgJ9RIxahGQh4MlMU5ivI9v3ReL1x2icNQ== clasohm
+EOF
+
+cat >/home/jhorn/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCzlRETx5/d/53o+hjWc+LKXhayVxhBYXoPUTQwBto2bX/JYaD9+Lxrq+2jxGngj6J96YcWfM4r9jm4ejBgC2gEnIJ60MQNEIlJIdVuBAY3y4Koi1dhrXWGcUp29cgEeav7uSuQHimAn0Z3jIVDXqMruIVdCZtx0pP2VWoxwQY8Y3/6+ZNgT2RkDNw+BsbEnaOkNLrP1ezPK5IwoFdoRJEPz3vzZzZzRyAzYOletFjSUSqCV2YgtKoShp/ErdeBn47AULDQ9jquXqI/MQYgCI84op7gjjT40sUoLsg6PuuWKzdEMxwHjYNaCwrqQArl7F0bWDT3H1QSK1fKHB0yXI3j jhorn
+EOF
+
+cat >/home/jmcdonough/.ssh/authorized_keys <<EOF
+EOF
+
+cat >/home/tuttle/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC5Tnh1DfnYwtwWZPzcXdfyZfJwWc6jGwhtjYZmy6gkKuSa0ETmTQpwY9WTA+/SncieoQLb3x9kHFrlO4Ofh4SHm6+TY75HA972I4L3+Vmz5W/2Ly7nTiXLP1R/O4Tc4RjFIChBvE0Gz4UQMkJgVB/aJcTJEMHRoj0R3mHK4kSpohVv29LKoSDtH821v2CC0Ih8Aw1qs0qjhlY4ovB3kgwzpO12RPwjrWWplynubRjxnSfrA7P//Wy3l9foRn5ka0+R3jCQb1K+HTz3EXANKIqh/FCgqsftIeUi0q1jUJz9oQxHoNFwcCkSkObOmu27w+ulZ1+yknmjZlOEH6RMZhLR h278331@ga69mln0002b9
+EOF
+
+for USER in clasohm jhorn jmcdonough tuttle; do
+    chown -R $USER:$USER /home/$USER/.ssh
+    chmod -R g-w /home/$USER/.ssh
+done
+###
+
 echo "Resize Root FS"
 rootdev=`findmnt --target / -o SOURCE -n`
 rootdrivename=`lsblk -no pkname $rootdev`
