@@ -37,6 +37,8 @@
         value: "{{ rhnpassword }}"
       SubscriptionPoolId:
         value: "{{ subscriptionpoolid }}"
+      SubscriptionPoolIdBroker:
+        value: "{{ subscriptionbrokerpoolid }}"
       sshPrivateData:
         value: "{{ sshprivatedata }}"
       aadClientId:
