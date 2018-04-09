@@ -3,30 +3,30 @@
 # Azure Subscription to use
 AZ_SUB="SPEC.DEV"
 # Resource group for blob container
-RESOURCE_GROUP="openshift-rg"
-# Storage Account for blob container 
+RESOURCE_GROUP="spec-platform"
+# Storage Account for blob container
 STORAGE_ACCOUNT="openshiftrefarch"
-STORAGE_CONTAINER="ocp-dev"
+STORAGE_CONTAINER="ocp-jth"
 # Template that contains variables pointing to this container
 ARM_TEMPLATE="azuredeploy.json.sa"
 FILES="${ARM_TEMPLATE}  azuredeploy.parameters.json bastion.json bastion.sh infranode.json master.json master.sh node.sh node.json"
 
 
 function usage {
-  echo "Error: Requires 3 args"
-  echo -e "Usage: $0 [azure login] [azure password] [upload|delete]"
+  echo "Error: Requires 1 args"
+  echo -e "Usage: $0 [upload|delete]"
   exit 1
 }
 
 function setup {
   tempFile="${HOME}/.az_account"
-  
+
   echo "az login -u ${az_name}"
   # check if logged in already
   az account list -o table > ${tempFile}  2>/dev/null && grep -Eq "${AZ_SUB}" ${tempFile}
-  if [[ $? != 0 ]]; then 
+  if [[ $? != 0 ]]; then
     echo "need to login"
-    az login 
+    az login
   fi
 
   subscription_cur=$(az account list -o table |awk '/True/ {print $3}')
@@ -48,27 +48,22 @@ function upload() {
 }
 
 function delete() {
-  for file in ${FILES}; do 
-    az storage blob delete  --delete-snapshots='include'  -n ${file} -c ${STORAGE_CONTAINER} 
+  for file in ${FILES}; do
+    az storage blob delete  --delete-snapshots='include'  -n ${file} -c ${STORAGE_CONTAINER}
   done
 }
 
-if [[ $# < 2 ]]; then
-  usage
-else
-  az_name=${1}
+#if [[ $# < 1 ]]; then
+#  usage
+#elif  [[ $1 =~ delete|upload ]]; then
+if  [[ $1 =~ delete|upload ]]; then
   setup
-fi
-
-if  [[ $2 =~ delete|upload ]]; then
-  CMD=$2
+  CMD=$1
+  echo "${CMD}ing"
+  ${CMD}
+  # set to previous subscripiont before exiting
+  echo "Setting to previous subscription"
+  az account set --subscription ${subscription_cur}
 else
   usage
 fi
-
-echo "${CMD}ing"
-${CMD}
-
-# set to previous subscripiont before exiting
-echo "Setting to previous subscription"
-az account set --subscription ${subscription_cur}

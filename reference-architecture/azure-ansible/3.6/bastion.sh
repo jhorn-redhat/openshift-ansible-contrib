@@ -11,37 +11,38 @@ export NODECOUNT=$6
 export ROUTEREXTIP=$7
 export RHNUSERNAME=$8
 export RHNPASSWORD=$9
-export RHNPOOLID=${10}
-export SSHPRIVATEDATA=${11}
-export SSHPUBLICDATA=${12}
-export SSHPUBLICDATA2=${13}
-export SSHPUBLICDATA3=${14}
-export REGISTRYSTORAGENAME=${array[14]}
-export REGISTRYKEY=${array[15]}
-export LOCATION=${array[16]}
-export SUBSCRIPTIONID=${array[17]}
-export TENANTID=${array[18]}
-export AADCLIENTID=${array[19]}
-export AADCLIENTSECRET=${array[20]}
-export RHSMMODE=${array[21]}
-export OPENSHIFTSDN=${array[22]}
-export METRICS=${array[23]}
-export LOGGING=${array[24]}
-export OPSLOGGING=${array[25]}
-export GITURL=${array[26]}
-export CUSTOMWILDCARD=${array[27]}
-export CUSTOMPUBLICHOSTNAME=${array[28]}
-export PORTALNET=${array[29]}
-export CLUSTERNET=${array[30]}
-export MASTERKEY=${array[31]}
-export MASTERCERT=${array[32]}
-export MASTERCA=${array[33]}
-export ROUTERKEY=${array[34]}
-export ROUTERCERT=${array[35]}
-export ROUTERCA=${array[36]}
-export CUSTOMDNS=${array[37]}
-export AUTOINSTALL=${array[38]}
-export IDENTITYPROVIDERS=${array[39]}
+export RHNPOOLID_BROKER=${10}
+export RHNPOOLID=${11}
+export SSHPRIVATEDATA=${12}
+export SSHPUBLICDATA=${13}
+export SSHPUBLICDATA2=${14}
+export SSHPUBLICDATA3=${15}
+export REGISTRYSTORAGENAME=${array[15]}
+export REGISTRYKEY=${array[16]}
+export LOCATION=${array[17]}
+export SUBSCRIPTIONID=${array[18]}
+export TENANTID=${array[19]}
+export AADCLIENTID=${array[20]}
+export AADCLIENTSECRET=${array[21]}
+export RHSMMODE=${array[22]}
+export OPENSHIFTSDN=${array[23]}
+export METRICS=${array[24]}
+export LOGGING=${array[25]}
+export OPSLOGGING=${array[26]}
+export GITURL=${array[27]}
+export CUSTOMWILDCARD=${array[28]}
+export CUSTOMPUBLICHOSTNAME=${array[29]}
+export PORTALNET=${array[30]}
+export CLUSTERNET=${array[31]}
+export MASTERKEY=${array[32]}
+export MASTERCERT=${array[33]}
+export MASTERCA=${array[34]}
+export ROUTERKEY=${array[35]}
+export ROUTERCERT=${array[36]}
+export ROUTERCA=${array[37]}
+export CUSTOMDNS=${array[38]}
+export AUTOINSTALL=${array[39]}
+export IDENTITYPROVIDERS=${array[40]}
 export FULLDOMAIN=${THEHOSTNAME#*.*}
 # for lab / dev + spec for prod remove spec
 export WILDCARDFQDN=${WILDCARDZONE}spec.${FULLDOMAIN}
@@ -111,6 +112,60 @@ chmod 644 /home/octopus/.ssh/authorized_keys
 chown -R  octopus:octopus /home/octopus
 chown -R  bamboo:bamboo /home/bamboo
 ###
+
+# add other local user accounts
+for USER in clasohm jhorn jmcdonough tuttle; do
+    useradd -G wheel $USER
+    mkdir -m 700 /home/$USER/.ssh
+done
+
+for USER in bwheatle cmeidlin mnagel shsrivas srowley; do
+    useradd $USER
+    mkdir -m 700 /home/$USER/.ssh
+done
+
+cat >/home/bwheatle/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDfBWE+4CHziSDqkYE8Ntcf8cNhqAkepZCJ7NNtLApNtrYCyklrLa7DPSKoRj42vzFcWd17Dj+B/lUTOOHoIKQ9VcJpHV4BfC/s0g7QeKT0adMkB3ogZ9wBqrOeintTtECP6Y+bygi9pXu4zoC47liLLAC3Xy7XE0BqUyqN19kGn0sc10ZZYIR1rtlPYokCwavBZzhxmwgSo5QmFHDWzt55jPa8CHr6WB0sPH8z+mFc+bHqsx2Zbf5LPTTjw3Gn+xuDMZQtm9iIXcCqtbtvBx8lHfR040A0l9I7YwguYzC7FjgJiEfc/JCOJeZ9zPxdM/J/s1P/2Tpk1i1HFLWdE+yL bwheatley
+EOF
+
+cat >/home/clasohm/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAtENPMx0/h3RyvlPGeuWPM/g08D1DE0D914XMcIvYdR6ryD+gpMoRTfTMkIHmiaSNe1+Dd1yYzaT6CvWNZ0kyfLA9VKaVkqut7yWagaZOC8vBUKx2vUpJkw9OjeW+X9KDmTgaGnbc4eQm/ey+XPLRmwBLrxvtJ5dTLVrD3L6KQ/9HSPx898V+PmqSE9S+5hDXBpbA5r2R0DPlo0yFkaOJEaJ+BFZbcqX40t+MMRFdnPAS45BgSW1fqD3bDFXkzsdTOq3C7Z5ihCWMFcPxL0Ifp3o/LWEHRVh7N/rilZko+B/o3OP0iFHsIgJ9RIxahGQh4MlMU5ivI9v3ReL1x2icNQ== clasohm
+EOF
+
+cat >/home/cmeidlin/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAsYaFOg/txO6bT+xSeUMz3SASvJM+S5OZZOiJiH7glIyLoEUsK7vQ23phf+0sWgHZjxy1FOxcISa6jdB6K2ZPeh975lvgAuYJGz/79IhX2RejBuw39p9ujs7nRlg3ANNw14crikhzyeKszkZZ6+pJf9TvAUCBDegA7NqjZs0pNDJ35zWoF/ATIRoCvaJN1IV3lPgpp2zwo+9e+hWq+aS/Lkd/2DCTRdbvIjeyGQmNQu6GeTzTdI/n5if+VQ5N8QmDjkdHT78Cj8scleRv3b0snjC0rAAfeDW74Iy0plmaC2dWmXUGVzUFxSk9esVi3y4iIwfStJsMUcve535Z3ENo6w== cj
+EOF
+
+cat >/home/jhorn/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCzlRETx5/d/53o+hjWc+LKXhayVxhBYXoPUTQwBto2bX/JYaD9+Lxrq+2jxGngj6J96YcWfM4r9jm4ejBgC2gEnIJ60MQNEIlJIdVuBAY3y4Koi1dhrXWGcUp29cgEeav7uSuQHimAn0Z3jIVDXqMruIVdCZtx0pP2VWoxwQY8Y3/6+ZNgT2RkDNw+BsbEnaOkNLrP1ezPK5IwoFdoRJEPz3vzZzZzRyAzYOletFjSUSqCV2YgtKoShp/ErdeBn47AULDQ9jquXqI/MQYgCI84op7gjjT40sUoLsg6PuuWKzdEMxwHjYNaCwrqQArl7F0bWDT3H1QSK1fKHB0yXI3j jhorn
+EOF
+
+cat >/home/jmcdonough/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDV+1HVsAqfV0NVugDDm4cLQZxncuNGlRgHnUpWC11aBoXNORox+wE6AiZuN9e6XquYZYOh+PIthA1Xz4sKR+NEICO3kCmniss4XjvngzJZQWyHaq9/cAbEeme1yIXI2hBvBsjkeBOSJatjPpau/8xJASpTP3blrqPI3wscYLjTiL/4XLwgz17MhNy9vfZhcLv6wIoEWoHoE0L6W8gBbFIarp57uw1XxKHzp4hDPd7tzKV/1nvfFOYguVqlp2qJNxWZorKgYvE2pHX85CF+nq8UNeGBR6nuK7X+3H562Vb9A9i2P8VaD7jpcW5cIvq3XjLp9KQp7+pA0+eclO0VXNfh h273859
+EOF
+
+cat >/home/mnagel/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDQjByucPjIoaKkd4nwKAIYaA9FRqC2BvXevx5Ityj0Dzp5LJQjz2fuIsKfOwp1qP9SAkEA6JgBzKVlEna14dgcNHNyhaoHIiYXx8Y5uTJ/kGoJxHsf4UXWJoqdxI2C3ut2/a4iOC61kkjcOo0ZsjPpUsHuDTuG8YJ6+57Fr8yQYdeC/AvHr39E/n8zZ1OKtZOVZKidqBe+pKk+UTS2HXH67SnCWo3pTBjvwrpeu8229glcBsqbmKCj7HIS+HYl1eF8TgzzGwF0q1O79FNZsEB/+lYxmAUVyaQk1DDeMT3TF3OI9zmmNqV8nYDG3quvqzsp5LhMrRzAk1PqrZ9eulJQeQh0X4mRnTv5KR2itDbl47NoLjPGR+5+oL5LD9opvSZauAg+LOVv/J8v40MvtPEwXuoEoh1OTF6s/XbdqfFbuTQ7+X9rG5uOZ23atTRcJ7yTgUItjGKfwuJsKykqSTwjCA5JPFwQjvWn8nIFmPeNk7+rl05gGNdWciQVw0x5z8HunK7riib6dNSy5EwdghaUtsDiR42cX4T/JIa4AONt4PO38+B+5DsYNShU9k0tJV9kHYJKUySASDW62tF0kBBa5RieDTlk9VeVDLL3nTWYRbGvs1dGVrZwkLwhtvNV4qaoa3AmMNSOCUZSyKQmY3ESF8XFrCi+KonFrOwjSqfQBQ== mnagel
+EOF
+
+cat >/home/shsrivas/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCk7CjQtf66iTJLuWM46Umq4G9SGbTTmZqTilYaipSExU1K/HiOW4fFRidkkdoqzEQzAWFncqXL6FCv6PuJ71zql/0ZGeg72AqEl+5f9ifXEKYbKohVyjtv05SL+lkqCNy3flAWPogl6YXMJWOs+rbM7xqIbsam/esQcOIktCRW26DofV1LVxnCqPn+ipZFW6e/wJLTwdDuse38U3J2mjxLy/iEJ8HK5xYsSv+O5h+RIPB4e8PbBb4Jj4vzkdR8ps7PPrwpFh93JIWS2MyRE86NLbutEAVgKaVHzM5zstHR/AX+cqej7rg3uwIQmxLU2KW42VERNdCA7V0oGAPQ8utv shsrivas
+EOF
+
+cat >/home/srowley/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC2L4W2gsFG2tYM5zfArEUe/U8QcqMwm/+sbuJJNIcHN2aRXJwxFSwYBE3PmC4eqZkTgcg6r5Sxi9oPgrBNDn2UrzDBnNYGENbnqB7WBpBL/RuYSAnsjJSTLSwAKbBsuNGTq04ZL5XBKyk12Yh62BlQUz2xIoEOwjt6Rs0YP5bnv9H3ulNoVg4Jorhi59z+UZeoCyXGPMZHqTGoM2XL/Tpih/MviQMwOk7uTtLaHaWmTdF3W20K3UCiZIgm/jfk5KFkLzCrwSTXzyozlFNHz7QTT5lqxhtVWs9NV60j19CMdAKDsgzQyhQ8Npi0ld8gf3uxrOtS4O+/zxL2TLxH3VN/25ygELNsHK7Wg+gZdw+JmQA7Sg8u3za+Wz7UPneOflNzqOZPbWcyImPOgDzmymYbzWPpzEXFrAd4unMTMM2KUvfi9bdRbj30BAq+pIFq8qUgDXbAiu5FVKpD/4zEyaY7YBPTESe9kzGHzd1BsXsoggQ4D5tbYfYVZg4abNMg4ZJMcuvUb5BLvpVuY7X8/ei7tiJmdXb749+jfLoU7CVH8RhZTt/yWKrPpsGAJZf1oO5T+W0hDDDffdJXQxCkplwdfoD7dIU7Qvun57d6tnXYfKCnpL7grdgQtVe4U5fQxayFnv7Np4VOPjwut7vklrQOoH9uRd+hylonGNXIhHkvdQ== srowley
+EOF
+
+cat >/home/tuttle/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC5Tnh1DfnYwtwWZPzcXdfyZfJwWc6jGwhtjYZmy6gkKuSa0ETmTQpwY9WTA+/SncieoQLb3x9kHFrlO4Ofh4SHm6+TY75HA972I4L3+Vmz5W/2Ly7nTiXLP1R/O4Tc4RjFIChBvE0Gz4UQMkJgVB/aJcTJEMHRoj0R3mHK4kSpohVv29LKoSDtH821v2CC0Ih8Aw1qs0qjhlY4ovB3kgwzpO12RPwjrWWplynubRjxnSfrA7P//Wy3l9foRn5ka0+R3jCQb1K+HTz3EXANKIqh/FCgqsftIeUi0q1jUJz9oQxHoNFwcCkSkObOmu27w+ulZ1+yknmjZlOEH6RMZhLR h278331@ga69mln0002b9
+EOF
+
+for USER in clasohm jhorn jmcdonough tuttle bwheatle cmeidlin mnagel shsrivas srowley; do
+    chown -R $USER:$USER /home/$USER/.ssh
+    chmod -R g-w /home/$USER/.ssh
+done
+###
+
 echo "Resize Root FS"
 rootdev=`findmnt --target / -o SOURCE -n`
 rootdrivename=`lsblk -no pkname $rootdev`
@@ -217,10 +272,11 @@ then
 else
    subscription-manager register --org="${RHNPASSWORD}" --activationkey="${RHNUSERNAME}"
 fi
-subscription-manager attach --pool=$RHNPOOLID
+subscription-manager remove --all
+subscription-manager attach --pool=${RHNPOOLID_BROKER}
 subscription-manager repos --disable="*"
 subscription-manager repos --enable="rhel-7-server-rpms" --enable="rhel-7-server-extras-rpms" --enable="rhel-7-fast-datapath-rpms"
-subscription-manager repos --enable="rhel-7-server-ose-3.6-rpms"
+subscription-manager repos --enable="rhel-7-server-ose-3.7-rpms"
 yum -y install atomic-openshift-utils git net-tools bind-utils iptables-services bridge-utils bash-completion httpd-tools nodejs qemu-img
 yum -y install --enablerepo="epel" jq
 touch /root/.updateok
@@ -371,6 +427,7 @@ cat > /home/${AUSERNAME}/azure-config.yml <<EOF
           "subscriptionID" : "{{ g_subscriptionId }}",
           "tenantID" : "{{ g_tenantId }}",
           "resourceGroup": "{{ g_resourceGroup }}",
+          "useInstanceMetadata": true
         }
 EOF
 
@@ -510,10 +567,12 @@ deployment_type=openshift-enterprise
 openshift_rolling_restart_mode=system
 openshift_deployment_type=openshift-enterprise
 
-openshift_enable_service_catalog=true
+openshift_enable_service_catalog=false
 ansible_service_broker_install=false
 template_service_broker_install=false
-template_service_broker_selector=role=infra
+template_service_broker_selector={"role":"infra"}
+
+osm_project_request_message=“To create a new project, contact your Team Admin.”
 
 osm_controller_args={'cloud-provider': ['azure'], 'cloud-config': ['/etc/azure/azure.conf']}
 osm_api_server_args={'cloud-provider': ['azure'], 'cloud-config': ['/etc/azure/azure.conf']}
@@ -670,7 +729,7 @@ done
 # FIX: if specifying specific version openshift_pkg_version
 #      this will enable the installation of atomic-openshift{{ openshift_pkg_version }}
 #      in subscribe.yml below
-if [[ ! $(grep -q openshift_pkg_version /etc/ansible/hosts) ]];then 
+if [[  $(grep -q ^openshift_pkg_version /etc/ansible/hosts;echo $?) == 0 ]];then
   pkg_version=$(awk -F'=' '/^openshift_pkg_version/ {print $2}'  /etc/ansible/hosts)
   echo "FOUND: openshift_pkg_version ${pkg_version}"
 fi
@@ -690,32 +749,42 @@ cat <<EOF > /home/${AUSERNAME}/subscribe.yml
   tasks:
   - name: check connection
     ping:
+
   - name: Get rid of RHUI repos
     file: path=/etc/yum.repos.d/rh-cloud.repo state=absent
+
   - name: Get rid of RHUI load balancers
     file: path=/etc/yum.repos.d/rhui-load-balancers state=absent
+
   - name: remove the RHUI package
     yum: name=RHEL7 state=absent
+
   - name: Allow rhsm a longer timeout to help out with subscription-manager
     lineinfile:
       dest: /etc/rhsm/rhsm.conf
       line: 'server_timeout=600'
       insertafter: '^proxy_password ='
+
   - name: Get rid of old subs
     shell: subscription-manager unregister
     ignore_errors: yes
-    register: remove_result
-  - name: register hosts
-EOF
 
+  - name: register hosts | Master and Infra subs only
+EOF
 if [[ $RHSMMODE == "usernamepassword" ]]; then
 cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
     redhat_subscription:
       state: present
       username: "${RHNUSERNAME}"
       password: "${RHNPASSWORD}"
-      pool: "${RHNPOOLID}"
+      pool: "${RHNPOOLID_BROKER}"
       force_register: yes
+    register: task_result
+    until: task_result | success
+    retries: 10
+    delay: 30
+    ignore_errors: yes
+    when:  '"master" in inventory_hostname or "infra"  in inventory_hostname'
 EOF
 else
 cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
@@ -723,16 +792,29 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
       state: present
       activationkey: "${RHNUSERNAME}"
       org_id: "${RHNPASSWORD}"
-      pool: "${RHNPOOLID}"
+      pool: "${RHNPOOLID_BROKER}"
       force_register: yes
-EOF
-fi
-cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
     register: task_result
-    until: task_result.rc == 0
+    until: task_result | success
     retries: 10
     delay: 30
     ignore_errors: yes
+    when:  '"master" in inventory_hostname or "infra"  in inventory_hostname'
+EOF
+fi
+
+# Remove worker node subscription from masters/infra nodes
+cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
+
+  - name: remove pool id | Master and Infra subscription only
+    shell: subscription-manager remove --pool "${RHNPOOLID}"
+    ignore_errors: yes
+    when:  '"master" in inventory_hostname or "infra"  in inventory_hostname'
+
+EOF
+
+cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
+
 EOF
 if [[ $RHSMMODE == "usernamepassword" ]]
 then
@@ -743,6 +825,26 @@ then
     echo "    retries: 10" >> /home/${AUSERNAME}/subscribe.yml
     echo "    delay: 30" >> /home/${AUSERNAME}/subscribe.yml
     echo "    ignore_errors: yes" >> /home/${AUSERNAME}/subscribe.yml
+else
+# Register Worker Nodes
+cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
+
+  - name: register hosts | node subscription only
+    redhat_subscription:
+      state: present
+      activationkey: "${RHNUSERNAME}"
+      org_id: "${RHNPASSWORD}"
+      force_register: yes
+    register: task_result
+    until: task_result | success
+    retries: 10
+    delay: 30
+    ignore_errors: yes
+    when:
+      - '"master" not in inventory_hostname'
+      - '"infra" not in inventory_hostname'
+
+EOF
 fi
 
 cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
@@ -752,6 +854,7 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
     until: repo_result | success
     retries: 10
     delay: 30
+
   - name: enable repos
     shell: subscription-manager repos --enable="rhel-7-server-rpms" \
            --enable="rhel-7-server-extras-rpms" --enable="rhel-7-fast-datapath-rpms" \
@@ -760,10 +863,13 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
     until: enable_result | success
     retries: 10
     delay: 30
+
   - name: install the latest version of PyYAML
     yum: name=PyYAML state=latest
+
   - name: Install the docker
     yum: name=docker-1.12.6 state=present
+
   - name: Update all hosts
     yum: name="*" state=latest exclude='atomic-openshift,atomic-openshift-clients,docker*'
     register: update_result
@@ -777,16 +883,19 @@ if [[ ${pkg_version} != "" ]]
 then
     echo "  - name: Install the OCP client" >> /home/${AUSERNAME}/subscribe.yml
     echo "    yum: name=atomic-openshift-clients${pkg_version} state=present" >> /home/${AUSERNAME}/subscribe.yml
+    echo >> /home/${AUSERNAME}/subscribe.yml
     echo "  - name: Install atomic-openshift${pkg_version}"                 >> /home/${AUSERNAME}/subscribe.yml
     echo "    yum: name=atomic-openshift${pkg_version} state=present"       >> /home/${AUSERNAME}/subscribe.yml
 else
     echo "  - name: Install the OCP client" >> /home/${AUSERNAME}/subscribe.yml
     echo "    yum: name=atomic-openshift-clients state=latest" >> /home/${AUSERNAME}/subscribe.yml
+    echo >> /home/${AUSERNAME}/subscribe.yml
     echo "  - name: Install atomic-openshift"                 >> /home/${AUSERNAME}/subscribe.yml
     echo "    yum: name=atomic-openshift state=latest"       >> /home/${AUSERNAME}/subscribe.yml
 fi
 
 cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
+
   - name: Install the docker
     yum: name=docker state=latest
   - name: Start Docker
@@ -794,16 +903,17 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
       name: docker
       enabled: yes
       state: started
-    register: docker_status 
+    register: docker_status
+    ignore_errors: yes
 
   - name: Restart host
-     block:
+    block:
      - name: Reboot node
        command: shutdown -r +1
        async: 600
        poll: 0
        when: docker_status|failed
- 
+
      - name: Wait for node to come back
        local_action: wait_for
        args:
@@ -816,13 +926,12 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
          delay: 70
          timeout: 600
        register: wait_for_reboot
- 
+
      - name: Wait for Things to Settle
        pause: minutes=2
-     when: docker_status|failed
+    when: docker_status|failed
 
 EOF
-
 
 cat <<EOF >> /home/${AUSERNAME}/upgrade.yml
 ---
@@ -1456,12 +1565,13 @@ add_node_openshift(){
   echo "Scaling up the node..."
   ansible-playbook /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-node/scaleup.yml
   echo "Adding the node to the ansible inventory..."
-  sudo sed -i "/^\${VMNAME}.*/d" /etc/ansible/hosts
-  sudo sed -i "/\[nodes\]/a \${VMNAME} openshift_hostname=\${VMNAME} openshift_node_labels=\"{'role':'\${ROLE}','zone':'default','logging':'true'}\"" /etc/ansible/hosts
+  ansible new_nodes -b -m command -a "nmcli con modify eth0 ipv4.dns-search $(domainname -d)"
+  ansible new_nodes -b -a "nmcli con up eth0"
   # setup custom dnsmasq domain
   ansible-playbook -l \${VMNAME}  /home/honeywell/custom-dnsmasq-domain.yml
-
-  ansible-playbook  /home/honeywell/setup-azure-node.yml
+  sudo sed -i "/^\${VMNAME}.*/d" /etc/ansible/hosts
+  sudo sed -i "/\[nodes\]/a \${VMNAME} openshift_hostname=\${VMNAME} openshift_node_labels=\"{'role':'\${ROLE}','zone':'default','logging':'true'}\"" /etc/ansible/hosts
+  ansible-playbook -l \${VMNAME} /home/honeywell/setup-azure-node.yml
 }
 
 add_master_openshift(){
@@ -1651,17 +1761,6 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 sleep 120
 ansible all --module-name=ping > ansible-preinstall-ping.out || true
 
-EOF
-
-if [[ ${CUSTOMDNS} != "false" ]];then
-  echo "# setup dnsmasq on bastion" >> /home/${AUSERNAME}/openshift-install.sh
-  echo "ansible-playbook /home/${AUSERNAME}/bastion-dnsmasq.yml" >> /home/${AUSERNAME}/openshift-install.sh
-  echo "# setup custom dnsmasq domain" >> /home/${AUSERNAME}/openshift-install.sh
-  echo "ansible-playbook /home/${AUSERNAME}/custom-dnsmasq-domain.yml" >> /home/${AUSERNAME}/openshift-install.sh
-fi
-
-cat <<EOF >> /home/${AUSERNAME}/openshift-install.sh
-
 ansible-playbook  /home/${AUSERNAME}/subscribe.yml
 ansible-playbook  /home/${AUSERNAME}/azure-config.yml
 echo "${RESOURCEGROUP} Bastion Host is starting ansible BYO" | mail -s "${RESOURCEGROUP} Bastion BYO Install" ${RHNUSERNAME} || true
@@ -1672,7 +1771,16 @@ wget http://master1:443/api > healtcheck.out
 ansible all -b -m command -a "nmcli con modify eth0 ipv4.dns-search $(domainname -d)"
 ansible all -b -m service -a "name=NetworkManager state=restarted"
 
+EOF
 
+if [[ ${CUSTOMDNS} != "false" ]];then
+  echo "# setup dnsmasq on bastion" >> /home/${AUSERNAME}/openshift-install.sh
+  echo "ansible-playbook /home/${AUSERNAME}/bastion-dnsmasq.yml" >> /home/${AUSERNAME}/openshift-install.sh
+  echo "# setup custom dnsmasq domain" >> /home/${AUSERNAME}/openshift-install.sh
+  echo "ansible-playbook /home/${AUSERNAME}/custom-dnsmasq-domain.yml" >> /home/${AUSERNAME}/openshift-install.sh
+fi
+
+cat <<EOF >> /home/${AUSERNAME}/openshift-install.sh
 
 ansible-playbook  /home/${AUSERNAME}/setup-azure-node.yml
 
@@ -1751,8 +1859,14 @@ fi
 #      oc patch pv/loggingopspv-\${i} -p '{"metadata":{"labels":{"usage":"opselasticsearch"}}}'
 #    done
 #  fi
-  ansible-playbook -e "openshift_logging_install_logging=\${DEPLOYLOGGING} openshift_logging_use_ops=\${DEPLOYOPSLOGGING}" /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-cluster/openshift-logging.yml
 #fi
+# https://bugzilla.redhat.com/show_bug.cgi?id=1544243
+# Pass with openshift-ansible:v3.7.36.
+# logging_elasticsearch_rollout_override=True
+  ansible-playbook -e "openshift_logging_install_logging=\${DEPLOYLOGGING} openshift_logging_use_ops=\${DEPLOYOPSLOGGING}" -e logging_elasticsearch_rollout_override=True /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-cluster/openshift-logging.yml
+
+# Service catalog
+ansible-playbook -e openshift_enable_service_catalog=True -e template_service_broker_install=True /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-cluster/service-catalog.yml
 
 EOF
 
