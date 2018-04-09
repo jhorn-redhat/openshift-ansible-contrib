@@ -622,7 +622,7 @@ openshift_portal_net=${PORTALNET}
 openshift_use_dnsmasq=true
 openshift_master_cluster_method=native
 openshift_master_default_subdomain=${WILDCARDFQDN}
-openshift_master_cluster_hostname=${PUBLICHOSTNAME}
+openshift_master_cluster_hostname=master1
 openshift_master_cluster_public_hostname=${PUBLICHOSTNAME}
 
 # Do not install metrics but post install
@@ -1034,6 +1034,62 @@ cat <<EOF > /home/${AUSERNAME}/postinstall.yml
   - name: add initial user to Red Hat OpenShift Container Platform
     shell: htpasswd -c -b /etc/origin/master/htpasswd ${AUSERNAME} ${PASSWORD}
 
+EOF
+
+cat <<EOF > /home/${AUSERNAME}/fix-api-url.yml
+---
+- hosts: masters
+  tasks:
+  - name: Configure master client for local API
+    lineinfile:
+      path: "{{ item }}/.kube/config"
+      regexp: "    server: https://[^:]+:{{ console_port }}"
+      line: "    server: https://{{ ansible_hostname }}:{{ console_port }}"
+      state: present
+    with_items:
+      - /root
+      - /home/${AUSERNAME}
+
+  - name: Configure master node for local API
+    lineinfile:
+      path: /etc/origin/node/system:node:{{ ansible_hostname }}.kubeconfig
+      regexp: "    server: https://[^:]+:{{ console_port }}"
+      line: "    server: https://{{ ansible_hostname }}:{{ console_port }}"
+      state: present
+    notify: Restart atomic-openshift-node
+  handlers:
+  - name: Restart atomic-openshift-node
+    service:
+      name: atomic-openshift-node
+      state: restarted
+
+- hosts: nodes:!masters
+  tasks:
+  - name: Configure non-master node for API load balancer
+    lineinfile:
+      path: /etc/origin/node/system:node:{{ ansible_hostname }}.kubeconfig
+      regexp: "    server: https://[^:]+:{{ console_port }}"
+      line: "    server: https://{{ openshift_master_cluster_public_hostname }}:{{ console_port }}"
+      state: present
+    notify: Restart atomic-openshift-node
+  handlers:
+  - name: Restart atomic-openshift-node
+    service:
+      name: atomic-openshift-node
+      state: restarted
+
+- hosts: localhost
+  become: yes
+  tasks:
+  - name: Configure bastion client for API load balancer
+    lineinfile:
+      path: "{{ item }}/.kube/config"
+      regexp: "    server: https://[^:]+:{{ hostvars['master1']['console_port'] }}"
+      line: "    server: https://{{ hostvars['master1']['openshift_master_cluster_public_hostname'] }}:{{ hostvars['master1']['console_port'] }}"
+      state: present
+    with_items:
+      - /root
+      - /home/${AUSERNAME}
 EOF
 
 cat > /home/${AUSERNAME}/ssovars.yml <<EOF
@@ -1710,6 +1766,9 @@ mkdir /home/${AUSERNAME}/.kube
 cp /tmp/kube-config /home/${AUSERNAME}/.kube/config
 chown --recursive ${AUSERNAME} /home/${AUSERNAME}/.kube
 rm -f /tmp/kube-config
+
+ansible-playbook /home/${AUSERNAME}/fix-api-url.yml &&
+
 yum -y install atomic-openshift-clients
 echo "setup registry for azure"
 oc env dc docker-registry -e REGISTRY_STORAGE=azure -e REGISTRY_STORAGE_AZURE_ACCOUNTNAME=$REGISTRYSTORAGENAME -e REGISTRY_STORAGE_AZURE_ACCOUNTKEY=$REGISTRYKEY -e REGISTRY_STORAGE_AZURE_CONTAINER=registry

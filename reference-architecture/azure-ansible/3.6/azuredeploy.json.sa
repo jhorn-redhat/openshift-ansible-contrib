@@ -80,6 +80,12 @@
 				"description": "URL for web console | example console.example.com -  defaults to false which uses <resource-group-name>.<region>.cloudapp.azure.com"
 			}
 		},
+		"masterPrivateIp": {
+			"type": "string",
+			"metadata": {
+				"description": "Internal IP address for web console"
+			}
+		},
 		"adminUsername": {
 			"type": "string",
 			"minLength": 1,
@@ -598,7 +604,6 @@
 		"tenantId": "[subscription().tenantId]",
 		"bastionVMSize": "Standard_DS1_v2",
 		"masterLoadBalancerName": "[concat('MasterLb',resourceGroup().name)]",
-		"masterPublicIpAddressId": "[resourceId('Microsoft.Network/publicIPAddresses', resourceGroup().name)]",
 		"masterLbId": "[resourceId('Microsoft.Network/loadBalancers', variables('masterLoadBalancerName'))]",
 		"masterLbFrontEndConfigId": "[concat(variables('masterLbId'), '/frontendIPConfigurations/loadBalancerFrontEnd')]",
 		"masterLbBackendPoolId": "[concat(variables('masterLbId'),'/backendAddressPools/loadBalancerBackend')]",
@@ -1237,21 +1242,6 @@
 			"properties": {}
 		},
 		{
-			"type": "Microsoft.Network/publicIPAddresses",
-			"name": "[resourceGroup().name]",
-			"location": "[variables('location')]",
-			"apiVersion": "[variables('apiVersionNetwork')]",
-			"tags": {
-				"displayName": "OpenShiftMasterPublicIP"
-			},
-			"properties": {
-				"publicIPAllocationMethod": "Static",
-				"dnsSettings": {
-					"domainNameLabel": "[resourceGroup().name]"
-				}
-			}
-		},
-		{
 			"type": "Microsoft.Network/loadBalancers",
 			"name": "[variables('masterLoadBalancerName')]",
 			"location": "[variables('location')]",
@@ -1259,16 +1249,16 @@
 			"tags": {
 				"displayName": "OpenShiftMasterLB"
 			},
-			"dependsOn": [
-				"[concat('Microsoft.Network/publicIPAddresses/', resourceGroup().name)]"
-			],
+			"dependsOn": [],
 			"properties": {
 				"frontendIPConfigurations": [{
 					"name": "LoadBalancerFrontEnd",
 					"properties": {
-						"publicIPAddress": {
-							"id": "[variables('masterPublicIpAddressId')]"
-						}
+						"privateIPAddress": "[parameters('masterPrivateIp')]",
+                                                "privateIPAllocationMethod": "Static",
+                                                "subnet": {
+                                                          "id": "[variables('masterSubnetRef')]"
+                                                }
 					}
 				}],
 				"backendAddressPools": [{
@@ -1387,7 +1377,7 @@
 	"outputs": {
 		"Openshift Webconsole": {
 			"type": "string",
-			"value": "[concat('https://', reference(resourceGroup().name).dnsSettings.fqdn, ':443/console')]"
+			"value": "[concat('https://', parameters('masterUrl'), ':443/console')]"
 		},
 		"Bastion ssh": {
 			"type": "string",
