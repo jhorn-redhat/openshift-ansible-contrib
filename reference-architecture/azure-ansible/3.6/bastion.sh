@@ -400,7 +400,7 @@ cat > /home/${AUSERNAME}/azure-config.yml <<EOF
           "aadClientSecret" : "{{ g_aadClientSecret }}",
           "subscriptionID" : "{{ g_subscriptionId }}",
           "tenantID" : "{{ g_tenantId }}",
-          "location": "$LOCATION",
+          "location" : "{{ g_location }}",
           "resourceGroup": "{{ g_resourceGroup }}",
           "useInstanceMetadata": true
         }
