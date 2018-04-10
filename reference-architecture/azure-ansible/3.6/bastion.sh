@@ -426,6 +426,7 @@ cat > /home/${AUSERNAME}/azure-config.yml <<EOF
           "aadClientSecret" : "{{ g_aadClientSecret }}",
           "subscriptionID" : "{{ g_subscriptionId }}",
           "tenantID" : "{{ g_tenantId }}",
+          "location" : "{{ g_location }}",
           "resourceGroup": "{{ g_resourceGroup }}",
           "useInstanceMetadata": true
         }
@@ -1754,6 +1755,7 @@ provisioner: kubernetes.io/azure-disk
 parameters:
   storageAccount: sapv${RESOURCEGROUP//-}
   location: ${LOCATION}
+  skuName: Premium_LRS
 EOF
 
 cat <<EOF > /home/${AUSERNAME}/openshift-install.sh
