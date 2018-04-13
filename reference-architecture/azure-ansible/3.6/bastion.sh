@@ -884,30 +884,25 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
     register: docker_status
     ignore_errors: yes
 
-  - name: Restart host
-    block:
-     - name: Reboot node
-       command: shutdown -r +1
-       async: 600
-       poll: 0
-       when: docker_status|failed
+  - name: Reboot node
+    command: shutdown -r +1
+    async: 600
+    poll: 0
 
-     - name: Wait for node to come back
-       local_action: wait_for
-       args:
-         host: "{{ ansible_nodename }}"
-         port: 22
-         state: started
-         # Wait for the reboot delay from the previous task plus 10 seconds.
-         # Otherwise, the SSH port would still be open because the system
-         # has not rebooted.
-         delay: 70
-         timeout: 600
-       register: wait_for_reboot
+  - name: Wait for node to come back
+    local_action: wait_for
+    args:
+      host: "{{ ansible_nodename }}"
+      port: 22
+      state: started
+      # Wait for the reboot delay from the previous task plus 10 seconds.
+      # Otherwise, the SSH port would still be open because the system
+      # has not rebooted.
+      delay: 70
+      timeout: 600
 
-     - name: Wait for Things to Settle
-       pause: minutes=2
-    when: docker_status|failed
+  - name: Wait for Things to Settle
+    pause: minutes=2
 
 EOF
 
