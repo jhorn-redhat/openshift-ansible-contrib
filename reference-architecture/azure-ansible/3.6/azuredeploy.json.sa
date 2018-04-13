@@ -69,6 +69,12 @@
 				"description": "Internal IP address for web console"
 			}
 		},
+                "bastionPrivateIp": {
+                        "type": "string",
+                        "metadata": {
+				"description": "Internal IP address for bastion host"
+			}
+                },
 		"adminUsername": {
 			"type": "string",
 			"minLength": 1,
@@ -735,6 +741,9 @@
 					"subnetRef": {
 						"value": "[variables('masterSubnetRef')]"
 					},
+                                        "bastionPrivateIp": {
+                                                "value": "[parameters('bastionPrivateIp')]"
+                                        },
 					"vmSize": {
 						"value": "[variables('bastionVMSize')]"
 					},
@@ -881,6 +890,9 @@
 					"subnetRef": {
 						"value": "[variables('masterSubnetRef')]"
 					},
+                                        "bastionPrivateIp": {
+                                                "value": "[parameters('bastionPrivateIp')]"
+                                        },
 					"vmSize": {
 						"value": "[parameters('masterVMSize')]"
 					},
@@ -934,6 +946,9 @@
 					"subnetRef": {
 						"value": "[variables('masterSubnetRef')]"
 					},
+                                        "bastionPrivateIp": {
+                                                "value": "[parameters('bastionPrivateIp')]"
+                                        },
 					"vmSize": {
 						"value": "[parameters('masterVMSize')]"
 					},
@@ -987,6 +1002,9 @@
 					"subnetRef": {
 						"value": "[variables('masterSubnetRef')]"
 					},
+                                        "bastionPrivateIp": {
+                                                "value": "[parameters('bastionPrivateIp')]"
+                                        },
 					"vmSize": {
 						"value": "[parameters('masterVMSize')]"
 					},
@@ -1037,6 +1055,9 @@
 					"subnetRef": {
 						"value": "[variables('infranodeSubnetRef')]"
 					},
+                                        "bastionPrivateIp": {
+                                                "value": "[parameters('bastionPrivateIp')]"
+                                        },
 					"vmSize": {
 						"value": "[parameters('infranodeVMSize')]"
 					},
@@ -1087,6 +1108,9 @@
 					"subnetRef": {
 						"value": "[variables('infranodeSubnetRef')]"
 					},
+                                        "bastionPrivateIp": {
+                                                "value": "[parameters('bastionPrivateIp')]"
+                                        },
 					"vmSize": {
 						"value": "[parameters('infranodeVMSize')]"
 					},
@@ -1137,6 +1161,9 @@
 					"subnetRef": {
 						"value": "[variables('infranodeSubnetRef')]"
 					},
+                                        "bastionPrivateIp": {
+                                                "value": "[parameters('bastionPrivateIp')]"
+                                        },
 					"vmSize": {
 						"value": "[parameters('infranodeVMSize')]"
 					},
@@ -1367,7 +1394,46 @@
 					}
 				]
 			}
-		}
+		},
+                {
+                        "type" : "Microsoft.Network/networkSecurityGroups",
+                        "name" : "appnodensg",
+                        "tags" : {
+                                "displayName" : "NetworkSecurityGroup"
+                        },
+                        "apiVersion" : "[variables('apiVersion')]",
+                        "location" : "[resourceGroup().location]",
+                        "properties" : {
+                                "securityRules" : [
+                                        {
+                                                "name" : "local-ssh",
+                                                "properties" : {
+                                                        "protocol" : "Tcp",
+                                                        "sourcePortRange" : "*",
+                                                        "destinationPortRange" : "22",
+                                                        "sourceAddressPrefix" : "[parameters('bastionPrivateIp')]",
+                                                        "destinationAddressPrefix" : "*",
+                                                        "access" : "Allow",
+                                                        "priority" : 3000,
+                                                        "direction" : "Inbound"
+                                                }
+                                        },
+                                        {
+                                                "name" : "non-local-ssh",
+                                                "properties" : {
+                                                        "protocol" : "Tcp",
+                                                        "sourcePortRange" : "*",
+                                                        "destinationPortRange" : "22",
+                                                        "sourceAddressPrefix" : "*",
+                                                        "destinationAddressPrefix" : "*",
+                                                        "access" : "Deny",
+                                                        "priority" : 3001,
+                                                        "direction" : "Inbound"
+                                                }
+                                        }
+                                ]
+                        }
+                }
 	],
 	"outputs": {
 		"Openshift Webconsole": {
