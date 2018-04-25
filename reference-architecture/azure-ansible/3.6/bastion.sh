@@ -803,6 +803,12 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
     delay: 30
     ignore_errors: yes
     when:  '"master" in inventory_hostname or "infra"  in inventory_hostname'
+
+  # Remove worker node subscription from masters/infra nodes
+  - name: remove pool id | Master and Infra subscription only
+    shell: subscription-manager remove --pool "${RHNPOOLID}"
+    ignore_errors: yes
+    when:  '"master" in inventory_hostname or "infra"  in inventory_hostname'
 EOF
 fi
 
@@ -818,21 +824,30 @@ EOF
 
 cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
 
+  - name: register hosts | node subscription only
 EOF
+
+# Register Worker Nodes
 if [[ $RHSMMODE == "usernamepassword" ]]
 then
-    echo "  - name: attach sub" >> /home/${AUSERNAME}/subscribe.yml
-    echo "    shell: subscription-manager attach --pool=$RHNPOOLID" >> /home/${AUSERNAME}/subscribe.yml
-    echo "    register: task_result" >> /home/${AUSERNAME}/subscribe.yml
-    echo "    until: task_result.rc == 0" >> /home/${AUSERNAME}/subscribe.yml
-    echo "    retries: 10" >> /home/${AUSERNAME}/subscribe.yml
-    echo "    delay: 30" >> /home/${AUSERNAME}/subscribe.yml
-    echo "    ignore_errors: yes" >> /home/${AUSERNAME}/subscribe.yml
-else
-# Register Worker Nodes
 cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
-
-  - name: register hosts | node subscription only
+    redhat_subscription:
+      state: present
+      username: "${RHNUSERNAME}"
+      password: "${RHNPASSWORD}"
+      pool: "${RHNPOOLID}"
+      force_register: yes
+    register: task_result
+    until: task_result | success
+    retries: 10
+    delay: 30
+    ignore_errors: yes
+    when:
+      - '"master" not in inventory_hostname'
+      - '"infra" not in inventory_hostname'
+EOF
+else
+cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
     redhat_subscription:
       state: present
       activationkey: "${RHNUSERNAME}"
@@ -846,11 +861,11 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
     when:
       - '"master" not in inventory_hostname'
       - '"infra" not in inventory_hostname'
-
 EOF
 fi
 
 cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
+
   - name: disable all repos
     shell: subscription-manager repos --disable="*"
     register: repo_result
@@ -909,33 +924,27 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
     register: docker_status
     ignore_errors: yes
 
-  - name: Restart host
-    block:
-     - name: Reboot node
-       command: shutdown -r +1
-       async: 600
-       poll: 0
-       when: docker_status|failed
+  - name: Reboot node
+    command: shutdown -r +1
+    async: 600
+    poll: 0
 
-     - name: Wait for node to come back
-       local_action: wait_for
-       args:
-         host: "{{ ansible_nodename }}"
-         port: 22
-         state: started
-         # Wait for the reboot delay from the previous task plus 10 seconds.
-         # Otherwise, the SSH port would still be open because the system
-         # has not rebooted.
-         delay: 70
-         timeout: 600
-       register: wait_for_reboot
+  - name: Wait for node to come back
+    local_action: wait_for
+    args:
+      host: "{{ ansible_nodename }}"
+      port: 22
+      state: started
+      # Wait for the reboot delay from the previous task plus 10 seconds.
+      # Otherwise, the SSH port would still be open because the system
+      # has not rebooted.
+      delay: 70
+      timeout: 600
 
-     - name: Wait for Things to Settle
-       pause: minutes=2
-    when: docker_status|failed
+  - name: Wait for Things to Settle
+    pause: minutes=2
 
 EOF
-
 
 cat <<EOF >> /home/${AUSERNAME}/upgrade.yml
 ---
@@ -1867,6 +1876,10 @@ fi
 # Service catalog
 ansible-playbook -e openshift_enable_service_catalog=True -e template_service_broker_install=True /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-cluster/service-catalog.yml
 
+# Assign the application node network security group that was created by the
+# ARM template to the node subnet that already existed as part of the
+# pre-created VNet.
+azure network vnet subnet set ${RESOURCEGROUP} ${RESOURCEGROUP} node --network-security-group-name appnodensg
 EOF
 
 cat <<'EOF' > /home/${AUSERNAME}/create_pv.sh
