@@ -361,6 +361,7 @@ cat > /home/${AUSERNAME}/azure.conf <<EOF
    "aadTenantID": "$TENANTID",
    "resourceGroup": "$RESOURCEGROUP",
    "location": "$LOCATION",
+   "useInstanceMetadata": true,
 }
 EOF
 
@@ -541,9 +542,9 @@ deployment_type=openshift-enterprise
 openshift_rolling_restart_mode=system
 openshift_deployment_type=openshift-enterprise
 
-openshift_enable_service_catalog=false
+openshift_enable_service_catalog=true
 ansible_service_broker_install=false
-template_service_broker_install=false
+template_service_broker_install=true
 template_service_broker_selector={"role":"infra"}
 
 osm_project_request_message=“To create a new project, contact your Team Admin.”
