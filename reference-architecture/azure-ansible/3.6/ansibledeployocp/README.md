@@ -1,4 +1,5 @@
 
+
 # OpenShift Container Platform on Azure using Ansible deployment of ARM
 
 This repository contains a few scripts and playbooks to deploy an OpenShift Container Platform on Azure using Ansible and ARM templates. This is a helper method on the [OpenShift Container Platform on Azure reference architecture document](https://access.redhat.com/documentation/en-us/reference_architectures/2017/html-single/deploying_red_hat_openshift_container_platform_3_on_microsoft_azure/).
@@ -13,9 +14,10 @@ This ARM template is designed to deploy into an existing resourcegroup and vNet.
 			- **subnets**: **Master**, **Infra** and **Node** subnets must be created and assigned CIDRs
  3. Install Ansible 2.3+
  4. Prepare deployment server
- 5. Create service principal credentials
- 6. Make a copy of vars.yaml.example -> vars.yaml and edit
- 7. Deploy
+ 5. Git clone 
+ 6. Create service principal credentials
+ 7. Make a copy of vars.yaml.example -> vars.yaml and edit
+ 8. Deploy
 
 
 
@@ -218,10 +220,35 @@ These Variables deploy named certificates when using the domains above, "FQDN" (
  - **logging**: true to enable cluster logging, false to not enable (note, do not quote as those variables are boolean values, not strings), **true** by default
  - **opslogging**: true to enable ops cluster logging, false to not enable (note, do not quote as those variables are boolean values, not strings), **false** by default
 
+**
+
+**Encrypting VARS.YAML**
+Using ansible-vault to encrypt the  variable file, (vars.yaml) provides a secure way of storing sensitive data.  A environment variable needs to be set that points to where the password is stored, outside of SCM that will be used for decryption.
+
+```<git clone dir>/reference-architecture/azure-ansible/3.6/ansibledeployocp/.vault_pass.py``` references the environment variable exported in .bashrc,   
+```
+ANSIBLE_VAULT_PASSWORD_FILE=/path/to/passwd/file
+```
+**Encrypting**
+```
+cd <git clone dir>/reference-architecture/azure-ansible/3.6/ansibledeployocp/
+ansible-vault encrypt vars.yaml
+```
+**Edit**
+```
+ansible-vault edit vars.yaml
+```
+
 ## Running the deploy
 
+Ensure you're logged into azure cli
 ```bash
-ansible-playbook -e @vars.yaml playbooks/deploy.yml
+azure login
+```
+Then execute the installation
+
+```bash
+ansible-playbook -e @vars.yaml playbooks/deploy.yaml
 ```
 
 **NOTE:** Ansible version should be > 2.1 as the Azure module was included in that version
@@ -252,3 +279,4 @@ localhost                  : ok=3    changed=2    unreachable=0    failed=0
 ```bash
 ansible-playbook -e @vars.yaml playbooks/destroy.yaml
 ```
+
