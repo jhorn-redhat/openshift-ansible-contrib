@@ -7,8 +7,12 @@ ZEROVG=$( parted -m /dev/sda print all 2>/dev/null | grep unknown | grep /dev/sd
 parted -s -a optimal ${ZEROVG} mklabel gpt -- mkpart primary xfs 1 -1
 sleep 5
 mkfs.xfs -f ${ZEROVG}1
-echo "${ZEROVG}1  /var/lib/origin/openshift.local.volumes xfs  defaults,gquota  0  0" >> /etc/fstab
-mount ${ZEROVG}1
+ZEROVG_UUID=$(blkid ${ZEROVG}1 -sUUID -ovalue)
+echo "${ZEROVG_UUID}  /var/lib/origin/openshift.local.volumes xfs  defaults,gquota  0  0" >> /etc/fstab
+mount UUID=${ZEROVG_UUID}
+
+#echo "${ZEROVG}1  /var/lib/origin/openshift.local.volumes xfs  defaults,gquota  0  0" >> /etc/fstab
+#mount ${ZEROVG}1
 
 DOCKERVG=$( parted -m /dev/sda print all 2>/dev/null | grep unknown | grep /dev/sd | cut -d':' -f1 | head -n1 )
 

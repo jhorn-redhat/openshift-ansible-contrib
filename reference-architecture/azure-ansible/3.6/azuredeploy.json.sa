@@ -86,12 +86,12 @@
 				"description": "Internal IP address for web console"
 			}
 		},
-                "bastionPrivateIp": {
-                        "type": "string",
-                        "metadata": {
-				"description": "Internal IP address for bastion host"
-			}
-                },
+    "bastionPrivateIp": {
+      "type": "string",
+      "metadata": {
+			  "description": "Internal IP address for bastion host"
+		  }
+    },
 		"adminUsername": {
 			"type": "string",
 			"minLength": 1,
