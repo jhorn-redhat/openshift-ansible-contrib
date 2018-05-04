@@ -8,8 +8,8 @@ parted -s -a optimal ${ZEROVG} mklabel gpt -- mkpart primary xfs 1 -1
 sleep 5
 mkfs.xfs -f ${ZEROVG}1
 ZEROVG_UUID=$(blkid ${ZEROVG}1 -sUUID -ovalue)
-echo "#UUID=${ZEROVG_UUID}  /var/lib/origin/openshift.local.volumes xfs  defaults,gquota  0  0" >> /etc/fstab
-#mount UUID=${ZEROVG_UUID}
+echo "UUID=${ZEROVG_UUID}  /var/lib/origin/openshift.local.volumes xfs  defaults,gquota  0  0" >> /etc/fstab
+mount UUID=${ZEROVG_UUID}
 
 #echo "${ZEROVG}1  /var/lib/origin/openshift.local.volumes xfs  defaults,gquota  0  0" >> /etc/fstab
 #mount ${ZEROVG}1

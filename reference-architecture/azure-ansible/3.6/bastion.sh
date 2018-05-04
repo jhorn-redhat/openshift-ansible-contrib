@@ -417,6 +417,18 @@ cat > /home/${AUSERNAME}/setup-azure-node.yml <<EOF
   vars:
     node_conf: /etc/origin/node/node-config.yaml
   tasks:
+  - name: update multippath conf for MSFT
+    blockinfile:
+      path: /etc/multipath.conf
+      insertafter: 'blacklist'
+      block: |
+        #
+              device {
+                      vendor  "Msft"
+                      product "Virtual Disk"
+              }
+
+
   - name: insert the azure disk config into the node
     modify_yaml:
       dest: "{{ node_conf }}"
@@ -509,7 +521,7 @@ cat > /home/${AUSERNAME}/setup-azure-node.yml <<EOF
   become: no
   tasks:
   - name: Mark masters as unschedulable
-    command: oadm manage-node {{ ansible_nodename }} --schedulable=false
+    command: oc adm manage-node {{ ansible_nodename }} --schedulable=false
     delegate_to: "{{ groups['masters'][0] }}"
 
   - name: Set master node labels
@@ -554,9 +566,9 @@ deployment_type=openshift-enterprise
 openshift_rolling_restart_mode=system
 openshift_deployment_type=openshift-enterprise
 
-openshift_enable_service_catalog=true
+openshift_enable_service_catalog=false
 ansible_service_broker_install=false
-template_service_broker_install=true
+template_service_broker_install=false
 template_service_broker_selector={"role":"infra"}
 
 osm_project_request_message=“To create a new project, contact your Team Admin.”
@@ -639,7 +651,7 @@ openshift_master_cluster_hostname=master1
 openshift_master_cluster_public_hostname=${PUBLICHOSTNAME}
 
 # Do not install metrics but post install
-openshift_metrics_install_metrics=true
+openshift_metrics_install_metrics=false
 openshift_metrics_cassandra_storage_type=dynamic
 openshift_metrics_cassandra_pvc_size="${METRICS_CASSANDRASIZE}G"
 openshift_metrics_cassandra_replicas="${METRICS_INSTANCES}"
@@ -648,7 +660,7 @@ openshift_metrics_cassandra_nodeselector={"role":"infra"}
 openshift_metrics_heapster_nodeselector={"role":"infra"}
 
 # Do not install logging but post install
-openshift_logging_install_logging=true
+openshift_logging_install_logging=false
 openshift_logging_master_public_url=https://${PUBLICHOSTNAME}
 #openshift_logging_es_pv_selector={"usage":"elasticsearch"}
 openshift_logging_es_pvc_dynamic="true"
@@ -897,11 +909,11 @@ cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
     register: docker_status
     ignore_errors: yes
 
-  - name: Reboot node
-    command: shutdown -r +1
-    async: 600
-    poll: 0
-
+#  - name: Reboot node
+#    command: shutdown -r +1
+#    async: 600
+#    poll: 0
+#
   - name: Wait for node to come back
     local_action: wait_for
     args:
@@ -1748,6 +1760,9 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 sleep 120
 ansible all --module-name=ping > ansible-preinstall-ping.out || true
 
+yum -y install atomic-openshift-clients
+
+
 ansible-playbook  /home/${AUSERNAME}/subscribe.yml
 ansible-playbook  /home/${AUSERNAME}/azure-config.yml
 echo "${RESOURCEGROUP} Bastion Host is starting ansible BYO" | mail -s "${RESOURCEGROUP} Bastion BYO Install" ${RHNUSERNAME} || true
@@ -1755,7 +1770,7 @@ ansible-playbook  /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml 
 
 wget http://master1:443/api > healtcheck.out
 
-ansible all -b -m command -a "nmcli con modify eth0 ipv4.dns-search $(domainname -d)"
+ansible all -b -m command -a "nmcli con modify 'System eth0' ipv4.dns-search $(domainname -d)"
 ansible all -b -m service -a "name=NetworkManager state=restarted"
 
 EOF
@@ -1783,7 +1798,6 @@ rm -f /tmp/kube-config
 
 ansible-playbook /home/${AUSERNAME}/fix-api-url.yml &&
 
-yum -y install atomic-openshift-clients
 echo "setup registry for azure"
 oc env dc docker-registry -e REGISTRY_STORAGE=azure -e REGISTRY_STORAGE_AZURE_ACCOUNTNAME=$REGISTRYSTORAGENAME -e REGISTRY_STORAGE_AZURE_ACCOUNTKEY=$REGISTRYKEY -e REGISTRY_STORAGE_AZURE_CONTAINER=registry
 oc patch dc registry-console -p '{"spec":{"template":{"spec":{"nodeSelector":{"role":"infra"}}}}}'
@@ -1825,27 +1839,6 @@ then
   #/home/${AUSERNAME}/create_pv.sh sapvlm${RESOURCEGROUP//-} loggingmetricspv metricspv ${METRICS_INSTANCES} ${METRICS_CASSANDRASIZE}
   ansible-playbook -e "openshift_metrics_install_metrics=\${DEPLOYMETRICS}" /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-cluster/openshift-metrics.yml
 fi
-
-#JTH: removed, using dynamic provisioning
-#if [ \${DEPLOYLOGGING} == "true" ] || [ \${DEPLOYOPSLOGGING} == "true" ]
-#then
-#  if [ \${DEPLOYLOGGING} == "true" ]
-#  then
-#    /home/${AUSERNAME}/create_pv.sh sapvlm${RESOURCEGROUP//-} loggingmetricspv loggingpv ${LOGGING_ES_INSTANCES} ${LOGGING_ES_SIZE}
-#    for ((i=0;i<${LOGGING_ES_INSTANCES};i++))
-#    do
-#      oc patch pv/loggingpv-\${i} -p '{"metadata":{"labels":{"usage":"elasticsearch"}}}'
-#    done
-#  fi
-
-#  if [ \${DEPLOYOPSLOGGING} == true ]
-#  then
-#    /home/${AUSERNAME}/create_pv.sh sapvlm${RESOURCEGROUP//-} loggingmetricspv loggingopspv ${OPSLOGGING_ES_INSTANCES} ${OPSLOGGING_ES_SIZE}
-#    for ((i=0;i<${OPSLOGGING_ES_INSTANCES};i++))
-#    do
-#      oc patch pv/loggingopspv-\${i} -p '{"metadata":{"labels":{"usage":"opselasticsearch"}}}'
-#    done
-#  fi
 # https://bugzilla.redhat.com/show_bug.cgi?id=1544243
 # Pass with openshift-ansible:v3.7.36.
 # logging_elasticsearch_rollout_override=True
@@ -1853,7 +1846,10 @@ fi
 
 # Service catalog
 ansible-playbook -e openshift_enable_service_catalog=True -e template_service_broker_install=True /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-cluster/service-catalog.yml
-#fi
+
+# prometheus
+ansible-playbook /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-cluster/openshift-prometheus.yml
+ -e openshift_prometheus_state=present
 
 # Assign the application node network security group that was created by the
 # ARM template to the node subnet that already existed as part of the
