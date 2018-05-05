@@ -1068,8 +1068,8 @@ cat <<EOF > /home/${AUSERNAME}/fix-api-url.yml
   - name: Configure master client for local API
     lineinfile:
       path: "{{ item }}/.kube/config"
-      regexp: "    server: https://[^:]+:{{ console_port }}"
-      line: "    server: https://{{ ansible_hostname }}:{{ console_port }}"
+      regexp: "    server: https://.+"
+      line: "    server: https://{{ ansible_hostname }}"
       state: present
     with_items:
       - /root
