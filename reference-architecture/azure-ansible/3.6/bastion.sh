@@ -1590,6 +1590,8 @@ provisioner: kubernetes.io/azure-disk
 parameters:
   storageAccount: sapv${RESOURCEGROUP//-}
   location: ${LOCATION}
+  storageaccounttype: Premium_LRS
+  kind: dedicated
 EOF
 
 cat <<EOF > /home/${AUSERNAME}/openshift-install.sh
