@@ -1825,6 +1825,30 @@ touch /root/.openshiftcomplete
 touch /home/${AUSERNAME}/.openshiftcomplete
 EOF
 
+cat <<EOF > /home/${AUSERNAME}/install-splunk-forwarder.yml
+- name: Install Splunk Forwarder
+  hosts: all:localhost
+  become: yes
+  vars:
+    base_url: https://openshiftrefarch.blob.core.windows.net/ocp-prod/
+    splunkforwarder_rpm: splunkforwarder-7.1.0-2e75b3406c5b-linux-2.6-x86_64.rpm
+    splunkforwarder_conf: hon-deploymentclient-${RESOURCEGROUP}.zip
+  handlers:
+    - name: Restart splunkforwarder
+      command: /opt/splunkforwarder/bin/splunk restart --accept-license --no-prompt
+  tasks:
+    - name: Install splunkforwarder
+      yum:
+        name: "{{ base_url + splunkforwarder_rpm }}"
+
+    - name: Copy splunkforwarder configuration
+      unarchive:
+        remote_src: yes
+        src: "{{ base_url + splunkforwarder_conf }}"
+        dest: /opt/splunkforwarder/etc/apps
+      notify: Restart splunkforwarder
+EOF
+
 cat <<EOF > /home/${AUSERNAME}/openshift-postinstall.sh
 export ANSIBLE_HOST_KEY_CHECKING=False
 
