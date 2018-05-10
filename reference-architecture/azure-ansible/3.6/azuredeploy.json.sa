@@ -63,6 +63,18 @@
 				"description": "URL for web console"
 			}
 		},
+		"masterPrivateIp": {
+			"type": "string",
+			"metadata": {
+				"description": "Internal IP address for web console"
+			}
+		},
+                "bastionPrivateIp": {
+                        "type": "string",
+                        "metadata": {
+				"description": "Internal IP address for bastion host"
+			}
+                },
 		"adminUsername": {
 			"type": "string",
 			"minLength": 1,
@@ -320,6 +332,13 @@
 				"description": "Pool ID of the Red Hat subscritpion to use"
 			}
 		},
+    "SubscriptionPoolIdBroker": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "Pool ID of the Red Hat BROKER subscritpion to use, Defaults to rhnpoolid"
+      }
+    },
 		"sshPrivateData": {
 			"type": "securestring",
 			"metadata": {
@@ -586,7 +605,6 @@
 		"tenantId": "[subscription().tenantId]",
 		"bastionVMSize": "Standard_DS1_v2",
 		"masterLoadBalancerName": "[concat('MasterLb',resourceGroup().name)]",
-		"masterPublicIpAddressId": "[resourceId('Microsoft.Network/publicIPAddresses', resourceGroup().name)]",
 		"masterLbId": "[resourceId('Microsoft.Network/loadBalancers', variables('masterLoadBalancerName'))]",
 		"masterLbFrontEndConfigId": "[concat(variables('masterLbId'), '/frontendIPConfigurations/loadBalancerFrontEnd')]",
 		"masterLbBackendPoolId": "[concat(variables('masterLbId'),'/backendAddressPools/loadBalancerBackend')]",
@@ -723,6 +741,9 @@
 					"subnetRef": {
 						"value": "[variables('masterSubnetRef')]"
 					},
+                                        "bastionPrivateIp": {
+                                                "value": "[parameters('bastionPrivateIp')]"
+                                        },
 					"vmSize": {
 						"value": "[variables('bastionVMSize')]"
 					},
@@ -756,6 +777,9 @@
 					"SubscriptionPoolId": {
 						"value": "[parameters('SubscriptionPoolId')]"
 					},
+          "SubscriptionPoolIdBroker": {
+            "value": "[parameters('SubscriptionPoolIdBroker')]"
+          },
 					"sshPrivateData": {
 						"value": "[parameters('sshPrivateData')]"
 					},
@@ -866,6 +890,9 @@
 					"subnetRef": {
 						"value": "[variables('masterSubnetRef')]"
 					},
+                                        "bastionPrivateIp": {
+                                                "value": "[parameters('bastionPrivateIp')]"
+                                        },
 					"vmSize": {
 						"value": "[parameters('masterVMSize')]"
 					},
@@ -919,6 +946,9 @@
 					"subnetRef": {
 						"value": "[variables('masterSubnetRef')]"
 					},
+                                        "bastionPrivateIp": {
+                                                "value": "[parameters('bastionPrivateIp')]"
+                                        },
 					"vmSize": {
 						"value": "[parameters('masterVMSize')]"
 					},
@@ -972,6 +1002,9 @@
 					"subnetRef": {
 						"value": "[variables('masterSubnetRef')]"
 					},
+                                        "bastionPrivateIp": {
+                                                "value": "[parameters('bastionPrivateIp')]"
+                                        },
 					"vmSize": {
 						"value": "[parameters('masterVMSize')]"
 					},
@@ -1022,6 +1055,9 @@
 					"subnetRef": {
 						"value": "[variables('infranodeSubnetRef')]"
 					},
+                                        "bastionPrivateIp": {
+                                                "value": "[parameters('bastionPrivateIp')]"
+                                        },
 					"vmSize": {
 						"value": "[parameters('infranodeVMSize')]"
 					},
@@ -1072,6 +1108,9 @@
 					"subnetRef": {
 						"value": "[variables('infranodeSubnetRef')]"
 					},
+                                        "bastionPrivateIp": {
+                                                "value": "[parameters('bastionPrivateIp')]"
+                                        },
 					"vmSize": {
 						"value": "[parameters('infranodeVMSize')]"
 					},
@@ -1122,6 +1161,9 @@
 					"subnetRef": {
 						"value": "[variables('infranodeSubnetRef')]"
 					},
+                                        "bastionPrivateIp": {
+                                                "value": "[parameters('bastionPrivateIp')]"
+                                        },
 					"vmSize": {
 						"value": "[parameters('infranodeVMSize')]"
 					},
@@ -1222,21 +1264,6 @@
 			"properties": {}
 		},
 		{
-			"type": "Microsoft.Network/publicIPAddresses",
-			"name": "[resourceGroup().name]",
-			"location": "[variables('location')]",
-			"apiVersion": "[variables('apiVersionNetwork')]",
-			"tags": {
-				"displayName": "OpenShiftMasterPublicIP"
-			},
-			"properties": {
-				"publicIPAllocationMethod": "Static",
-				"dnsSettings": {
-					"domainNameLabel": "[resourceGroup().name]"
-				}
-			}
-		},
-		{
 			"type": "Microsoft.Network/loadBalancers",
 			"name": "[variables('masterLoadBalancerName')]",
 			"location": "[variables('location')]",
@@ -1244,16 +1271,16 @@
 			"tags": {
 				"displayName": "OpenShiftMasterLB"
 			},
-			"dependsOn": [
-				"[concat('Microsoft.Network/publicIPAddresses/', resourceGroup().name)]"
-			],
+			"dependsOn": [],
 			"properties": {
 				"frontendIPConfigurations": [{
 					"name": "LoadBalancerFrontEnd",
 					"properties": {
-						"publicIPAddress": {
-							"id": "[variables('masterPublicIpAddressId')]"
-						}
+						"privateIPAddress": "[parameters('masterPrivateIp')]",
+                                                "privateIPAllocationMethod": "Static",
+                                                "subnet": {
+                                                          "id": "[variables('masterSubnetRef')]"
+                                                }
 					}
 				}],
 				"backendAddressPools": [{
@@ -1367,12 +1394,51 @@
 					}
 				]
 			}
-		}
+		},
+                {
+                        "type" : "Microsoft.Network/networkSecurityGroups",
+                        "name" : "appnodensg",
+                        "tags" : {
+                                "displayName" : "NetworkSecurityGroup"
+                        },
+                        "apiVersion" : "[variables('apiVersion')]",
+                        "location" : "[resourceGroup().location]",
+                        "properties" : {
+                                "securityRules" : [
+                                        {
+                                                "name" : "local-ssh",
+                                                "properties" : {
+                                                        "protocol" : "Tcp",
+                                                        "sourcePortRange" : "*",
+                                                        "destinationPortRange" : "22",
+                                                        "sourceAddressPrefix" : "[parameters('bastionPrivateIp')]",
+                                                        "destinationAddressPrefix" : "*",
+                                                        "access" : "Allow",
+                                                        "priority" : 3000,
+                                                        "direction" : "Inbound"
+                                                }
+                                        },
+                                        {
+                                                "name" : "non-local-ssh",
+                                                "properties" : {
+                                                        "protocol" : "Tcp",
+                                                        "sourcePortRange" : "*",
+                                                        "destinationPortRange" : "22",
+                                                        "sourceAddressPrefix" : "*",
+                                                        "destinationAddressPrefix" : "*",
+                                                        "access" : "Deny",
+                                                        "priority" : 3001,
+                                                        "direction" : "Inbound"
+                                                }
+                                        }
+                                ]
+                        }
+                }
 	],
 	"outputs": {
 		"Openshift Webconsole": {
 			"type": "string",
-			"value": "[concat('https://', reference(resourceGroup().name).dnsSettings.fqdn, ':443/console')]"
+			"value": "[concat('https://', parameters('masterUrl'), ':443/console')]"
 		},
 		"Bastion ssh": {
 			"type": "string",

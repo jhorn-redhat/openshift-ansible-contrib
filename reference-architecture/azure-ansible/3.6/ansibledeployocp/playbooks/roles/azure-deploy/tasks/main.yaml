@@ -11,6 +11,10 @@
         value: "{{ fqdn }}"
       masterUrl:
         value: "{{ masterurl }}"
+      masterPrivateIp:
+        value: "{{ masterprivateip }}"
+      bastionPrivateIp:
+        value: "{{ bastionprivateip }}"
       adminUsername:
         value: "{{ adminusername }}"
       adminPassword:
@@ -35,6 +39,8 @@
         value: "{{ rhnpassword }}"
       SubscriptionPoolId:
         value: "{{ subscriptionpoolid }}"
+      SubscriptionPoolIdBroker:
+        value: "{{ subscriptionbrokerpoolid }}"
       sshPrivateData:
         value: "{{ sshprivatedata }}"
       aadClientId:

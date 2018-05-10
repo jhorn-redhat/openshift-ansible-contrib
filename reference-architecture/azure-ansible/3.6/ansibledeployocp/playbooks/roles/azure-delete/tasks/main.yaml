@@ -11,6 +11,15 @@
       shell:  az vm list -g "{{ resourcegroupname }}" --query "[].name" -o tsv
       register: vm_list
     
+    - name: Unregister VMs
+      command: "az vm run-command invoke -g {{ resourcegroupname }}  -n {{ item }} --command-id RunShellScript --script 'sudo subscription-manager unregister'"
+      failed_when: "'FAILED' in unregister.stderr"
+      register: unregister
+      when: not skip|bool
+      with_items:
+        - "{{ vm_list.stdout_lines }}"
+
+
     - name: Destroy Azure | Delete VMs
       azure_rm_virtualmachine:
         resource_group: "{{ resourcegroupname }}"
@@ -84,10 +93,16 @@
       with_items:
         - "{{ pip_list.stdout_lines }}"
     
+    # Dissassociate the appnodensg from the node subnet. The subnet is
+    # not deleted, and we would not be able to delete the NSG if the
+    # association is not removed first.
+    - name: Remove NSG from node subnet
+      shell: az network vnet subnet update -g "{{ resourcegroupname }}" --vnet-name "{{ resourcegroupname }}" --name node --network-security-group ""
+
     - name: Destroy Azure | Gather list of Network Security Groups
       shell:  az network nsg list -g "{{ resourcegroupname }}"  --query "[].name" -o tsv
       register: nsg_list
-    
+
     - name: Destroy Azure | Delete Network Security Groups
       azure_rm_securitygroup:
         resource_group: "{{ resourcegroupname }}"
