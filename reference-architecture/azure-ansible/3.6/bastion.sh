@@ -1880,7 +1880,8 @@ ansible-playbook /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-cl
 # pre-created VNet.
 azure network vnet subnet set ${RESOURCEGROUP} ${RESOURCEGROUP} node --network-security-group-name appnodensg
 
-ansible-playbook install-splunk-forwarder.yml
+# As of 2018-05-10, this is only enabled in the prod environment.
+#ansible-playbook install-splunk-forwarder.yml
 EOF
 
 cat <<'EOF' > /home/${AUSERNAME}/create_pv.sh
