@@ -1899,6 +1899,8 @@ ansible-playbook -e openshift_enable_service_catalog=True -e template_service_br
 # ARM template to the node subnet that already existed as part of the
 # pre-created VNet.
 azure network vnet subnet set ${RESOURCEGROUP} ${RESOURCEGROUP} node --network-security-group-name appnodensg
+
+ansible-playbook install-splunk-forwarder.yml
 EOF
 
 cat <<'EOF' > /home/${AUSERNAME}/create_pv.sh
