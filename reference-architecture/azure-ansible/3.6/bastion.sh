@@ -1825,7 +1825,7 @@ cat <<EOF > /home/${AUSERNAME}/install-splunk-forwarder.yml
   hosts: all:localhost
   become: yes
   vars:
-    base_url: https://openshiftrefarch.blob.core.windows.net/ocp-prod/
+    base_url: https://openshiftrefarch.blob.core.windows.net/ocp-dev/
     splunkforwarder_rpm: splunkforwarder-7.1.0-2e75b3406c5b-linux-2.6-x86_64.rpm
     splunkforwarder_conf: hon-deploymentclient-${RESOURCEGROUP}.zip
   handlers:
