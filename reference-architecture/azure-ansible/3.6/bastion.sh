@@ -1811,7 +1811,7 @@ echo "Setup Azure PV for metrics & logging"
 oc adm policy add-cluster-role-to-user cluster-admin ${AUSERNAME}
 # Workaround for BZ1469358
 ansible master1 -b -m fetch -a "src=/etc/origin/master/ca.serial.txt dest=/tmp/ca.serial.txt flat=true"
-ansible masters -b -m copy -a "src=/tmp/ca.serial.txt dest=/etc/origin/master/ca.serial.txt mode=644 owner=root"
+ansible masters -b -m copy -a "src=/tmp/ca.serial.txt dest=/etc/origin/master/ca.serial.txt model=644 owner=root"
 ansible-playbook /home/${AUSERNAME}/setup-sso.yml &> /home/${AUSERNAME}/setup-sso.out
 cat /home/${AUSERNAME}/openshift-install.out | tr -cd [:print:] |  mail -s "${RESOURCEGROUP} Install Complete" ${RHNUSERNAME} || true
 touch /root/.openshiftcomplete
@@ -1823,7 +1823,7 @@ cat <<EOF > /home/${AUSERNAME}/install-splunk-forwarder.yml
   hosts: all:localhost
   become: yes
   vars:
-    base_url: https://openshiftrefarch.blob.core.windows.net/ocp-prod/
+    base_url: https://openshiftrefarch.blob.core.windows.net/ocp-lab/
     splunkforwarder_rpm: splunkforwarder-7.1.0-2e75b3406c5b-linux-2.6-x86_64.rpm
     splunkforwarder_conf: hon-deploymentclient-${RESOURCEGROUP}.zip
   handlers:

@@ -6,9 +6,9 @@ AZ_SUB="SPEC.DEV"
 RESOURCE_GROUP="spec-platform"
 # Storage Account for blob container 
 STORAGE_ACCOUNT="openshiftrefarch"
-STORAGE_CONTAINER="ocp-prod"
+STORAGE_CONTAINER="ocp-lab"
 # Template that contains variables pointing to this container
-FILES="splunkforwarder-7.1.0-2e75b3406c5b-linux-2.6-x86_64.rpm hon-deploymentclient-spec-prod-eastus.zip"
+FILES="splunkforwarder-7.1.0-2e75b3406c5b-linux-2.6-x86_64.rpm hon-deploymentclient-lab-spec-westus-rg.zip"
 
 function usage {
   echo "Error: Requires 1 args"
