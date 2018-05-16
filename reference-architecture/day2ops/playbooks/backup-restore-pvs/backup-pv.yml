@@ -1,0 +1,17 @@
+# Included by backup-pvs.yml
+- name: Create target directory
+  file:
+    path: "{{ dst_directory }}"
+    state: directory
+  delegate_to: localhost
+
+# Run rsync twice to loose as little changed data as possible.
+- name: Copy persistent volume
+  synchronize:
+    mode: pull
+    src: "{{ src_directory }}/"
+    dest: "{{ dst_directory }}"
+    delete: yes
+  with_items:
+    - pass1
+    - pass2
