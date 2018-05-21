@@ -1847,6 +1847,25 @@ cat <<EOF > /home/${AUSERNAME}/install-splunk-forwarder.yml
         src: "{{ base_url + splunkforwarder_conf }}"
         dest: /opt/splunkforwarder/etc/apps
       notify: Restart splunkforwarder
+
+    - name: Enable splunk during boot
+      command: /opt/splunkforwarder/bin/splunk enable boot-start
+
+    # The Splunk scripts are deployed by the Splunk server at some
+    # point after this playbook has run. New scripts may be deployed
+    # at any time, so we create a cron job to periodically fix the
+    # script permissions.
+    - name: Fix script permissions
+      copy:
+        content: |
+          #!/bin/bash
+
+          # Fix permissions of scripts deployed by Splunk server.
+          chmod +x /opt/splunkforwarder/etc/apps/*/bin/*.sh
+        dest: /etc/cron.hourly/splunk-fix-scripts
+        owner: root
+        group: root
+        mode: 0755
 EOF
 
 cat <<EOF > /home/${AUSERNAME}/openshift-postinstall.sh
