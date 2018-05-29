@@ -1,0 +1,7 @@
+# Included by get-pod-containers.yml
+
+- include_tasks: get-volume-mounts.yml volume_mount={{ volume_mount }}
+  when: volume_mount['name'] in volume_claim_names
+  with_items: "{{ container['volumeMounts'] }}"
+  loop_control:
+    loop_var: volume_mount

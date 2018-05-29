@@ -1,0 +1,37 @@
+# included by restore-images.yml
+
+- name: Copy image archive
+  synchronize:
+    src: "{{ image_archive }}"
+    dest: "{{ remote_tmp_dir }}"
+
+- set_fact:
+    image_name: "{{ image_archive | regex_replace('.*/([^/:]+):.*', '\\1') }}"
+    tag: "{{ image_archive | regex_replace('.*/[^/:]+:([^@]+)@.*', '\\1') }}"
+    digest: "{{ image_archive | regex_replace('.*@([^.]+).*', '\\1') }}"
+
+# We use the -f option in case a previous run of this playbook
+# failed and left the .tar file behind.
+- name: Uncompress image archive
+  command: gunzip -f {{ remote_tmp_dir }}/{{ image_name }}:{{ tag }}@{{ digest }}.tar.gz
+
+- name: Load image
+  command: docker load -i {{ remote_tmp_dir }}/{{ image_name }}:{{ tag }}@{{ digest }}.tar
+  register: cmd
+
+- set_fact:
+    image_id: "{{ cmd.stdout | regex_replace('.*Loaded image ID: ([a-z0-9:]+).*', '\\1') }}"
+
+- name: Delete remote image archive
+  file:
+    path: "{{ remote_tmp_dir }}/{{ image_name }}:{{ tag }}@{{ digest }}.tar"
+    state: absent
+
+- name: Tag image
+  command: docker tag {{ image_id }} {{ registry_name }}/{{ project_name }}/{{ image_name }}:{{ tag }}
+
+- name: Push image
+  command: docker push {{ registry_name }}/{{ project_name }}/{{ image_name }}:{{ tag }}
+
+- name: Delete remote image
+  command: docker rmi {{ image_id }}

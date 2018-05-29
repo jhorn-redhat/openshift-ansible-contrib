@@ -1,0 +1,38 @@
+# Included by backup-projects.yml.
+
+- name: Create local images backup directory
+  file:
+    path: "{{ local_backup_dir }}/{{ project_name }}/{{ timestamp }}/images"
+    state: directory
+  delegate_to: localhost
+
+# We run this on localhost because jq is not installed on the master node
+# by default.
+- name: Get builder token name
+  shell: oc get sa builder -n {{ project_name }} -o json | jq -r '.secrets[] | select(.name | startswith("builder-token-")).name'
+  delegate_to: localhost
+  register: cmd
+  changed_when: false
+
+- set_fact:
+    token_name: "{{ cmd.stdout }}"
+
+- name: Get builder token
+  shell: oc get secret -n {{ project_name }} -o jsonpath='{.data.token}' {{ token_name}} | base64 -d
+  delegate_to: localhost
+  register: cmd
+  changed_when: false
+
+- set_fact:
+    token: "{{ cmd.stdout }}"
+
+- name: Get image names
+  command: oc get is -n {{ project_name }} -o jsonpath='{.items[*].metadata.name}'
+  delegate_to: localhost
+  register: cmd
+  changed_when: false
+
+- include_tasks: get-image-tags.yml image_name={{ image_name }}
+  with_items: "{{ cmd.stdout.split(' ') }}"
+  loop_control:
+    loop_var: image_name

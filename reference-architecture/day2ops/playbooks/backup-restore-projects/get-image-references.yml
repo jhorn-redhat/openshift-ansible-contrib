@@ -1,0 +1,15 @@
+# included by get-image-tags.yml
+
+- name: Get image references
+  shell: oc get is -n {{ project_name }} -o json {{ image_name }} | jq -r '(.status.tags[] | select(.tag == "{{ tag }}")).items[].dockerImageReference'
+  delegate_to: localhost
+  register: cmd
+  changed_when: false
+
+- set_fact:
+    image_references: "{{ cmd.stdout.split('\n') }}"
+
+- include_tasks: backup-image.yml image_reference={{ image_reference }}
+  with_items: "{{ image_references }}"
+  loop_control:
+    loop_var: image_reference

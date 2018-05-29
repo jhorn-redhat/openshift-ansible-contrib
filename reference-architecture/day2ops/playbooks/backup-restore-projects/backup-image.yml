@@ -1,0 +1,37 @@
+# included by get-image-references.yml
+
+- name: Login to Docker registry
+  docker_login:
+    registry: "{{ registry_name }}"
+    username: "{{ project_name }}/builder"
+    password: "{{ token }}"
+
+- set_fact:
+    image_digest: "{{ image_reference | regex_replace('.*@(.*)', '\\1') }}"
+
+- name: Pull image
+  command: docker pull {{ registry_name }}/{{ project_name }}/{{ image_name }}@{{ image_digest }}
+
+- name: Save Image
+  command: docker save -o {{ tmp_dir }}/{{ image_name }}:{{ tag }}@{{ image_digest }}.tar {{ registry_name }}/{{ project_name }}/{{ image_name }}@{{ image_digest }}
+
+- name: Logout from Docker registry
+  docker_login:
+    registry: "{{ registry_name }}"
+    state: absent
+
+# We use the -f option in case a previous run of this playbook
+# failed and left the .tar.gz file behind.
+- name: Compress image
+  command: gzip -f "{{ tmp_dir }}/{{ image_name }}:{{ tag }}@{{ image_digest }}.tar"
+
+- name: Copy image archive
+  synchronize:
+    mode: pull
+    src: "{{ tmp_dir }}/{{ image_name }}:{{ tag }}@{{ image_digest }}.tar.gz"
+    dest: "{{ local_backup_dir }}/{{ project_name }}/{{ timestamp }}/images"
+
+- name: Delete remote image archive
+  file:
+    path: "{{ tmp_dir }}/{{ image_name }}:{{ tag }}@{{ image_digest }}.tar.gz"
+    state: absent

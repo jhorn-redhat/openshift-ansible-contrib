@@ -1,0 +1,24 @@
+- name: Backup project metadata
+  hosts: localhost
+  vars_files:
+    - backup-vars-default.yml
+  tasks:
+    - set_fact:
+        timestamp: "{{ ansible_date_time.year + ansible_date_time.month + ansible_date_time.day }}"
+
+    - include_tasks: backup-project.yml project_name={{ item }}
+      with_items: "{{ project_names }}"
+
+- name: Backup project container images
+  hosts: master1
+  vars:
+    registry_name: docker-registry.default.svc.cluster.local:5000
+    tmp_dir: /mnt/resource
+  vars_files:
+    - backup-vars-default.yml
+  tasks:
+    - set_fact:
+        timestamp: "{{ ansible_date_time.year + ansible_date_time.month + ansible_date_time.day }}"
+
+    - include_tasks: backup-project-images.yml project_name={{ item }}
+      with_items: "{{ project_names }}"

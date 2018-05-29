@@ -1,0 +1,44 @@
+- name: Restore container images
+  hosts: master1
+  vars:
+    registry_name: docker-registry.default.svc.cluster.local:5000
+    remote_tmp_dir: /mnt/resource
+
+    # The following variables have to be passed as parameters.
+    # There are no default values for these.
+    # - project_name
+    # - image_dir
+  tasks:
+    - name: Get builder token name
+      shell: oc get sa builder -n {{ project_name }} -o json | jq -r '.secrets[] | select(.name | startswith("builder-token-")).name'
+      delegate_to: localhost
+      register: cmd
+      changed_when: false
+
+    - set_fact:
+        token_name: "{{ cmd.stdout }}"
+
+    - name: Get builder token
+      shell: oc get secret -n {{ project_name }} -o jsonpath='{.data.token}' {{ token_name}} | base64 -d
+      delegate_to: localhost
+      register: cmd
+      changed_when: false
+
+    - set_fact:
+        token: "{{ cmd.stdout }}"
+
+    - name: Login to Docker registry
+      docker_login:
+        registry: "{{ registry_name }}"
+        username: "{{ project_name }}/builder"
+        password: "{{ token }}"
+
+    - include_tasks: restore-image.yml image_archive={{ image_archive }}
+      with_fileglob: "{{ image_dir }}/*.tar.gz"
+      loop_control:
+        loop_var: image_archive 
+
+    - name: Logout from Docker registry
+      docker_login:
+        registry: "{{ registry_name }}"
+        state: absent

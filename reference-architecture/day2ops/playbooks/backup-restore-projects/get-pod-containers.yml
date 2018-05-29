@@ -1,0 +1,16 @@
+# Included by get-project-pods.yml
+
+- set_fact:
+    volume_claim_names: {}
+
+- set_fact:
+    volume_claim_names: "{{ volume_claim_names | combine({volume['name']: volume['persistentVolumeClaim']['claimName']}) }}"
+  with_items: "{{ pod['spec']['volumes'] }}"
+  when: "'persistentVolumeClaim' in volume"
+  loop_control:
+    loop_var: volume
+
+- include_tasks: get-container-volumes.yml pod_name={{ pod['metadata']['name'] }} container={{ container }}
+  with_items: "{{ pod['spec']['containers'] }}"
+  loop_control:
+    loop_var: container
