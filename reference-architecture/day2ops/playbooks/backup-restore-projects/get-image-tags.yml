@@ -1,0 +1,19 @@
+# included by backup-project.yml
+
+- name: Get image tags
+  command: oc get is -n {{ project_name }} -o jsonpath='{.spec.tags[*].name}' {{ image_name }}
+  delegate_to: localhost
+  register: cmd
+  changed_when: false
+
+- set_fact:
+    tags: "{{ cmd.stdout.split(' ') }}"
+
+- set_fact:
+    tags: ['latest']
+  when: tags == ['']
+
+- include_tasks: get-image-references.yml tag={{ tag }}
+  with_items: "{{ tags }}"
+  loop_control:
+    loop_var: tag

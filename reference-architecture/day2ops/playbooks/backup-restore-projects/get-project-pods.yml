@@ -1,0 +1,32 @@
+# Included by backup-pvs.yml and restore-pvs.yml.
+
+- set_fact:
+    pv_names: {}
+
+- name: Get persistent volume claims
+  command: oc get pvc -n '{{ project_name }}' -o json
+  register: cmd
+  changed_when: false
+
+- set_fact:
+    pvcs: "{{ cmd.stdout | from_json }}"
+
+- set_fact:
+    pv_names: "{{ pv_names | combine({pvc['metadata']['name']: pvc['spec']['volumeName']}) }}"
+  with_items: "{{ pvcs['items'] }}"
+  loop_control:
+    loop_var: pvc
+
+- name: Get pods
+  command: oc get pods -n '{{ project_name }}' -o json
+  register: cmd
+  changed_when: false
+
+- set_fact:
+    pods: "{{ cmd.stdout | from_json }}"
+
+- include_tasks: get-pod-containers.yml pod={{ pod }}
+  when: pod | json_query("status.conditions[?type=='Ready'].status") == ['True']
+  with_items: "{{ pods['items'] }}"
+  loop_control:
+    loop_var: pod

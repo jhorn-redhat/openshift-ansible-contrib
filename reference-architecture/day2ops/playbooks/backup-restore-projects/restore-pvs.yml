@@ -1,0 +1,63 @@
+# Top-level playbook.
+#
+# Restore all persistent volumes in the project given in
+# the tgt_project_name variable.
+#
+# This playbook has to be run from the bastion host, as an OS user that
+# can SSH to all cluster nodes, can become root without entering a
+# password, and is authenticated as a cluster-admin with "oc".
+
+- name: Get source PVs and target volumes
+  hosts: localhost
+  vars_files:
+    - restore-pvs-vars-default.yml
+  tasks:
+    - set_fact:
+        src_files: "{{ lookup('fileglob', src_dir + '/*.tar.gz') }}"
+
+    - set_fact:
+        volume_locations: {}
+
+    - include_tasks: get-project-pods.yml project_name={{ tgt_project_name }}
+
+    - debug:
+        var: volume_locations
+
+- name: Restore PVs
+  # Get the list of target nodes that have volumes to include in the restore.
+  hosts: "{{ hostvars['localhost']['volume_locations'].keys() }}"
+  become: yes
+  tasks:
+    - set_fact:
+        volume_locations: "{{ hostvars['localhost']['volume_locations'][ansible_hostname] }}"
+
+    - name: Pause container
+      command: docker pause {{ item['container_id'] }}
+      with_items: "{{ volume_locations }}"
+
+    - name: Delete PV contents
+      command: find /var/lib/origin/openshift.local.volumes/pods/{{ item['pod_uid'] }}/volumes/kubernetes.io~azure-disk/{{ item['pv_name'] }} -mindepth 1 -delete
+      with_items: "{{ volume_locations }}"
+
+    - name: Extract tar file
+      unarchive:
+        src: "{{ src_dir }}/{{ item['pvc_name'] }}.tar.gz"
+        dest: /var/lib/origin/openshift.local.volumes/pods/{{ item['pod_uid'] }}/volumes/kubernetes.io~azure-disk/{{ item['pv_name'] }}
+        extra_opts: ['--strip-components=1', '--show-stored-names']
+      with_items: "{{ volume_locations }}"
+
+    - name: Change file system owner
+      command: chown --from={{ (lookup('file', src_dir + '/' + item['pvc_name'] + '.json') | from_json)['uid'] }} --recursive {{ item['fs_uid'] }} /var/lib/origin/openshift.local.volumes/pods/{{ item['pod_uid'] }}/volumes/kubernetes.io~azure-disk/{{ item['pv_name'] }}
+      with_items: "{{ volume_locations }}"
+
+    - name: Change file system group
+      command: chown --from=:{{ (lookup('file', src_dir + '/' + item['pvc_name'] + '.json') | from_json)['gid'] }} --recursive :{{ item['fs_gid'] }} /var/lib/origin/openshift.local.volumes/pods/{{ item['pod_uid'] }}/volumes/kubernetes.io~azure-disk/{{ item['pv_name'] }}
+      with_items: "{{ volume_locations }}"
+
+    - name: Unpause container
+      command: docker unpause {{ item['container_id'] }}
+      with_items: "{{ volume_locations }}"
+
+    - name: Restart container
+      command: docker restart {{ item['container_id'] }}
+      with_items: "{{ volume_locations }}"

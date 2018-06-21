@@ -1,0 +1,86 @@
+# Top-level playbook.
+#
+# Create a backup of all persistent volumes in the projects listed in
+# the project_names variable.
+#
+# This playbook has to be run from the bastion host, as an OS user that
+# can SSH to all cluster nodes, can become root without entering a
+# password, and is authenticated as a cluster-reader with "oc".
+
+- name: Get persistent volume locations
+  hosts: localhost
+  vars_files:
+    - backup-vars-default.yml
+  tasks:
+    - set_fact:
+        volume_locations: {}
+
+    - include_tasks: get-project-pods.yml project_name={{ project_name }}
+      with_items: "{{ project_names }}"
+      loop_control:
+        loop_var: project_name
+
+- name: Backup persistent volumes
+  # Get the list of target nodes that have volumes to include in the backup.
+  hosts: "{{ hostvars['localhost']['volume_locations'].keys() }}"
+  vars:
+    remote_tmp_dir: /mnt/resource
+    local_backup_dir: /mnt/resource
+  vars_files:
+    - backup-vars-default.yml
+  tasks:
+    # Exit if the project does not have any persistent volume claims.
+    - meta: end_play
+      when: ansible_hostname not in hostvars['localhost']['volume_locations'].keys()
+
+    - set_fact:
+        volume_locations: "{{ hostvars['localhost']['volume_locations'][ansible_hostname] }}"
+        # Get the timestamp from localhost so it's consistent across nodes.
+        timestamp: "{{ hostvars['localhost']['ansible_date_time']['year'] + hostvars['localhost']['ansible_date_time']['month'] + hostvars['localhost']['ansible_date_time']['day'] }}"
+
+    - name: Create local backup directory
+      file:
+        path: "{{ local_backup_dir }}/{{ item['project_name'] }}/{{ timestamp }}"
+        state: directory
+      delegate_to: localhost
+      with_items: "{{ volume_locations }}"
+
+    - name: Create remote temporary directory
+      file:
+        path: "{{ remote_tmp_dir }}/{{ item['project_name'] }}"
+        state: directory
+      with_items: "{{ volume_locations }}"
+
+    - name: Create remote tar file
+      archive:
+        path: /var/lib/origin/openshift.local.volumes/pods/{{ item['pod_uid'] }}/volumes/kubernetes.io~azure-disk/{{ item['pv_name'] }}
+        dest: "{{ remote_tmp_dir }}/{{ item['project_name'] }}/{{ item['pvc_name'] }}.tar.gz"
+      with_items: "{{ volume_locations }}"
+
+    - name: Copy tar file
+      synchronize:
+        mode: pull
+        src: "{{ remote_tmp_dir }}/{{ item['project_name'] }}/{{ item['pvc_name'] }}.tar.gz"
+        dest: "{{ local_backup_dir }}/{{ item['project_name'] }}/{{ timestamp }}"
+        compress: no
+        rsync_opts: "--partial-dir=.tmp-{{ item['pvc_name'] }}"
+      with_items: "{{ volume_locations }}"
+
+    - name: Save file ownership information
+      copy:
+        content: "{ 'uid': {{ item['fs_uid'] }}, 'gid': {{ item['fs_gid'] }} }"
+        dest: "{{ local_backup_dir }}/{{ item['project_name'] }}/{{ timestamp }}/{{ item['pvc_name'] }}.json"
+      delegate_to: localhost
+      with_items: "{{ volume_locations }}"
+
+    - name: Delete remote tar file
+      file:
+        path: "{{ remote_tmp_dir }}/{{ item['pvc_name'] }}.tar.gz"
+        state: absent 
+      with_items: "{{ volume_locations }}"
+
+    - name: Delete remote temporary directory
+      file:
+        path: "{{ remote_tmp_dir }}/{{ item['project_name'] }}"
+        state: absent
+      with_items: "{{ volume_locations }}"

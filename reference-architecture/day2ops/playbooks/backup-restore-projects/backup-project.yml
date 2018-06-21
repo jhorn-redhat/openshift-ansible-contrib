@@ -1,0 +1,11 @@
+# Included by backup-projects.yml.
+
+- name: Create local backup directory
+  file:
+    path: "{{ local_backup_dir }}/{{ project_name }}/{{ timestamp }}"
+    state: directory
+
+- name: Export project
+  command: /usr/local/bin/ocp-project-export.sh {{ project_name }}
+  args:
+    chdir: "{{ local_backup_dir }}/{{ project_name }}/{{ timestamp }}"
