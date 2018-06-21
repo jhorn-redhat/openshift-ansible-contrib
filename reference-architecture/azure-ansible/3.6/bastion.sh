@@ -1813,11 +1813,54 @@ echo "Setup Azure PV for metrics & logging"
 oc adm policy add-cluster-role-to-user cluster-admin ${AUSERNAME}
 # Workaround for BZ1469358
 ansible master1 -b -m fetch -a "src=/etc/origin/master/ca.serial.txt dest=/tmp/ca.serial.txt flat=true"
-ansible masters -b -m copy -a "src=/tmp/ca.serial.txt dest=/etc/origin/master/ca.serial.txt mode=644 owner=root"
+ansible masters -b -m copy -a "src=/tmp/ca.serial.txt dest=/etc/origin/master/ca.serial.txt model=644 owner=root"
 ansible-playbook /home/${AUSERNAME}/setup-sso.yml &> /home/${AUSERNAME}/setup-sso.out
 cat /home/${AUSERNAME}/openshift-install.out | tr -cd [:print:] |  mail -s "${RESOURCEGROUP} Install Complete" ${RHNUSERNAME} || true
 touch /root/.openshiftcomplete
 touch /home/${AUSERNAME}/.openshiftcomplete
+EOF
+
+cat <<EOF > /home/${AUSERNAME}/install-splunk-forwarder.yml
+- name: Install Splunk Forwarder
+  hosts: all:localhost
+  become: yes
+  vars:
+    base_url: https://openshiftrefarch.blob.core.windows.net/ocp-lab/
+    splunkforwarder_rpm: splunkforwarder-7.1.0-2e75b3406c5b-linux-2.6-x86_64.rpm
+    splunkforwarder_conf: hon-deploymentclient-${RESOURCEGROUP}.zip
+  handlers:
+    - name: Restart splunkforwarder
+      command: /opt/splunkforwarder/bin/splunk restart --accept-license --no-prompt
+  tasks:
+    - name: Install splunkforwarder
+      yum:
+        name: "{{ base_url + splunkforwarder_rpm }}"
+
+    - name: Copy splunkforwarder configuration
+      unarchive:
+        remote_src: yes
+        src: "{{ base_url + splunkforwarder_conf }}"
+        dest: /opt/splunkforwarder/etc/apps
+      notify: Restart splunkforwarder
+
+    - name: Enable splunk during boot
+      command: /opt/splunkforwarder/bin/splunk enable boot-start
+
+    # The Splunk scripts are deployed by the Splunk server at some
+    # point after this playbook has run. New scripts may be deployed
+    # at any time, so we create a cron job to periodically fix the
+    # script permissions.
+    - name: Fix script permissions
+      copy:
+        content: |
+          #!/bin/bash
+
+          # Fix permissions of scripts deployed by Splunk server.
+          chmod +x /opt/splunkforwarder/etc/apps/*/bin/*.sh
+        dest: /etc/cron.hourly/splunk-fix-scripts
+        owner: root
+        group: root
+        mode: 0755
 EOF
 
 cat <<EOF > /home/${AUSERNAME}/openshift-postinstall.sh
@@ -1857,6 +1900,9 @@ ansible-playbook /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-cl
 # ARM template to the node subnet that already existed as part of the
 # pre-created VNet.
 azure network vnet subnet set ${RESOURCEGROUP} ${RESOURCEGROUP} node --network-security-group-name appnodensg
+
+# As of 2018-05-10, this is only enabled in the prod environment.
+#ansible-playbook install-splunk-forwarder.yml
 EOF
 
 cat <<'EOF' > /home/${AUSERNAME}/create_pv.sh
