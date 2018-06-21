@@ -1822,6 +1822,49 @@ touch /root/.openshiftcomplete
 touch /home/${AUSERNAME}/.openshiftcomplete
 EOF
 
+cat <<EOF > /home/${AUSERNAME}/install-splunk-forwarder.yml
+- name: Install Splunk Forwarder
+  hosts: all:localhost
+  become: yes
+  vars:
+    base_url: https://openshiftrefarch.blob.core.windows.net/ocp-dev/
+    splunkforwarder_rpm: splunkforwarder-7.1.0-2e75b3406c5b-linux-2.6-x86_64.rpm
+    splunkforwarder_conf: hon-deploymentclient-${RESOURCEGROUP}.zip
+  handlers:
+    - name: Restart splunkforwarder
+      command: /opt/splunkforwarder/bin/splunk restart --accept-license --no-prompt
+  tasks:
+    - name: Install splunkforwarder
+      yum:
+        name: "{{ base_url + splunkforwarder_rpm }}"
+
+    - name: Copy splunkforwarder configuration
+      unarchive:
+        remote_src: yes
+        src: "{{ base_url + splunkforwarder_conf }}"
+        dest: /opt/splunkforwarder/etc/apps
+      notify: Restart splunkforwarder
+
+    - name: Enable splunk during boot
+      command: /opt/splunkforwarder/bin/splunk enable boot-start
+
+    # The Splunk scripts are deployed by the Splunk server at some
+    # point after this playbook has run. New scripts may be deployed
+    # at any time, so we create a cron job to periodically fix the
+    # script permissions.
+    - name: Fix script permissions
+      copy:
+        content: |
+          #!/bin/bash
+
+          # Fix permissions of scripts deployed by Splunk server.
+          chmod +x /opt/splunkforwarder/etc/apps/*/bin/*.sh
+        dest: /etc/cron.hourly/splunk-fix-scripts
+        owner: root
+        group: root
+        mode: 0755
+EOF
+
 cat <<EOF > /home/${AUSERNAME}/openshift-postinstall.sh
 export ANSIBLE_HOST_KEY_CHECKING=False
 
@@ -1877,6 +1920,9 @@ ansible-playbook -e openshift_enable_service_catalog=True -e template_service_br
 # ARM template to the node subnet that already existed as part of the
 # pre-created VNet.
 azure network vnet subnet set ${RESOURCEGROUP} ${RESOURCEGROUP} node --network-security-group-name appnodensg
+
+# As of 2018-05-10, this is only enabled in the prod environment.
+#ansible-playbook install-splunk-forwarder.yml
 EOF
 
 cat <<'EOF' > /home/${AUSERNAME}/create_pv.sh
