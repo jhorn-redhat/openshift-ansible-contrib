@@ -1,0 +1,4 @@
+project_names:
+  - default
+
+local_backup_dir: /tmp

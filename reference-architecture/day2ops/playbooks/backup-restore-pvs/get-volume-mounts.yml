@@ -1,0 +1,17 @@
+# Included by get-container-volumes.yml
+
+- set_fact:
+    pvc_name: "{{ volume_claim_names[volume_mount['name']] }}"
+
+- set_fact:
+    volume_location:
+      project_name: "{{ project_name }}"
+      pod_uid: "{{ pod['metadata']['uid'] }}"
+      container_id: "{{ pod['status']['containerStatuses'][0]['containerID'] | regex_replace('^docker://(.*)', '\\1') }}"
+      pvc_name: "{{ pvc_name }}"
+      pv_name: "{{ pv_names[pvc_name] }}"
+      fs_uid: "{{ container['securityContext']['runAsUser'] }}"
+      fs_gid: "{{ pod['spec']['securityContext']['fsGroup'] | default(pod['spec']['securityContext']['runAsUser']) }}"
+
+- set_fact:
+    volume_locations: "{{ volume_locations | combine({pod['spec']['nodeName']: (volume_locations[pod['spec']['nodeName']] | default([])) + [volume_location]}) }}"
