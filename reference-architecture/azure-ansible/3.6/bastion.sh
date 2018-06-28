@@ -635,6 +635,8 @@ if [[ ${ROUTERCERT} != 'false'  && ${ROUTERKEY} != 'false' && ${ROUTERCA} != 'fa
 # ROUTER Certificates
 openshift_hosted_router_certificate={"certfile": "${CERTDIR}/router.crt", "keyfile": "${CERTDIR}/router.key", "cafile": "${CERTDIR}/router.ca"}
 openshift_hosted_router_create_certificate=False
+# REGISTRY Certificates (use default router certificate)
+openshift_hosted_registry_routetermination=reencrypt
 EOF
 
 fi
